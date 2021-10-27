@@ -41,7 +41,7 @@ public class PlayerMovementSystem : ComponentSystem
             Debug.Log(m_CameraTargetRot+ " -+-+-+-+-");
         });
 
-        Debug.Log(m_CameraTargetRot + " -+-+-+-+-");
+        //Debug.Log(m_CameraTargetRot + " -+-+-+-+-");
     }
 
 
