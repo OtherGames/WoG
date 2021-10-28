@@ -18,8 +18,6 @@ public class Perceptron : MonoBehaviour
     [SerializeField]
     private int countHiddenNeuron = 5;
     [SerializeField]
-    float ebala = 0.37f;
-    [SerializeField]
     float min = -0.5f;
     [SerializeField]
     float max = 0.5f;
@@ -35,6 +33,8 @@ public class Perceptron : MonoBehaviour
     float[] thresoldsHidden;
     float[] weightedSums;
     float[] outputsHidden;
+
+    float[] prognoz;
     
     [SerializeField]
     float[] weightsOutputLayer;
@@ -48,6 +48,7 @@ public class Perceptron : MonoBehaviour
         outputsHidden = new float[countHiddenNeuron];
         weightsOutputLayer = new float[countHiddenNeuron];
         weightedSums = new float[countHiddenNeuron];
+        prognoz = new float[countHiddenNeuron];
 
         var capacity = rowLength - p;
         yValues = new float[capacity];
@@ -103,7 +104,12 @@ public class Perceptron : MonoBehaviour
         etalons.Add(-0.583f);
         etalons.Add(-0.353f);
         etalons.Add(-0.153f);
-
+        etalons.Add(-1.153f);
+        etalons.Add(-1.053f);
+        etalons.Add(-0.153f);
+        etalons.Add(1.153f);
+        etalons.Add(0.153f);
+        etalons.Add(-1.153f);
         for (int i = 0; i < rowLength; i++)
         {
             yield return null;
@@ -136,7 +142,6 @@ public class Perceptron : MonoBehaviour
 
             for (int iSample = 0; iSample < rowLength - p; iSample++)
             {
-
                 for (int i = 0; i < countHiddenNeuron; i++)
                 {
                     float wSum = 0;
@@ -167,8 +172,6 @@ public class Perceptron : MonoBehaviour
                 //    outputsHiddenLayer[0] = output_1;
 
 
-
-
                 //yield return null;
                 // Вычисление выходных значений выходного слоя
                 float weightedSumOutputLayer = 0;
@@ -186,8 +189,6 @@ public class Perceptron : MonoBehaviour
                 if (predictLine.positionCount < rowLength - p)
                     predictLine.positionCount = iSample + 1;
                 predictLine.SetPosition(iSample, new Vector3(iSample, outputMain));
-
-
 
 
                 // Изминение порогов и весовых коэффициентов
@@ -229,6 +230,49 @@ public class Perceptron : MonoBehaviour
                 }
 
             }
+
+            //======= ПРОГНОЗИЩЕ ================
+            float[] prognOutpuHidden = new float[countHiddenNeuron];
+            float[] prognOut = new float[p]; 
+            
+            //---------------------------------
+            for (int iProhod = 0; iProhod < p; iProhod++)
+            {
+                for (int j = 0; j < countHiddenNeuron; j++)
+                {
+                    float prognSum = 0;
+                    for (int i = 0; i < p; i++)
+                    {
+                        float x;
+                        int idx = rowLength - p + i + iProhod;
+                        if(idx < rowLength)
+                        {
+                            x = etalons[idx];
+                        }
+                        else
+                        {
+                            x = prognOut[iProhod];
+                        }
+                        prognSum += weightsHidden[j, i] * x;
+                    }
+                    prognSum -= thresoldsHidden[j];
+                    prognOutpuHidden[j] = SigmoidActivation(prognSum);
+                }
+
+                float prognSumOut = 0;
+                for (int i = 0; i < countHiddenNeuron; i++)
+                {
+                    float x = prognOutpuHidden[i];
+                    prognSumOut += weightsOutputLayer[i] * x;
+                }
+                prognSumOut -= thresoldOutputLayer;
+
+                prognOut[iProhod] = prognSumOut;
+                if (predictLine.positionCount < rowLength)
+                    predictLine.positionCount++;
+                predictLine.SetPosition(rowLength - p + iProhod, new Vector3(rowLength - p + iProhod, prognSumOut));
+            }
+
         }
     }
 
