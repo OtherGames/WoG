@@ -32,6 +32,7 @@ public class Chunck : MonoBehaviour
         meshRenderer.material = world.material;
         transform.position = new Vector3(coord.x * VoxelData.ChunkWidth, 0f, coord.z * VoxelData.ChunkWidth);
         transform.SetParent(world.transform);
+        transform.position += new Vector3(0.5f, 0.5f, 0.5f);
 
         gameObject.name = "Chunk " + coord.x + ", " + coord.z;
 
@@ -41,16 +42,13 @@ public class Chunck : MonoBehaviour
 
     void PopulateVoxelMap()
     {
-
         for (int y = 0; y < VoxelData.ChunkHeight; y++)
         {
             for (int x = 0; x < VoxelData.ChunkWidth; x++)
             {
                 for (int z = 0; z < VoxelData.ChunkWidth; z++)
                 {
-
-                    voxelMap[x, y, z] = world.GetVoxel(new Vector3(x, y, z) + transform.position);
-
+                    voxelMap[x, y, z] = world.GetVoxel(new Vector3(x, y, z));// transform.position);
                 }
             }
         }
@@ -100,13 +98,11 @@ public class Chunck : MonoBehaviour
 
     void UpdateMeshData(Vector3 pos)
     {
-
         for (int p = 0; p < 6; p++)
         {
 
             if (!CheckVoxel(pos + VoxelData.faceChecks[p]))
             {
-
                 byte blockID = voxelMap[(int)pos.x, (int)pos.y, (int)pos.z];
 
                 vertices.Add(pos + VoxelData.voxelVerts[VoxelData.voxelTris[p, 0]]);
@@ -178,8 +174,8 @@ public class Chunck : MonoBehaviour
         int yCheck = Mathf.FloorToInt(pos.y);
         int zCheck = Mathf.FloorToInt(pos.z);
 
-        xCheck -= Mathf.FloorToInt(transform.position.x);
-        zCheck -= Mathf.FloorToInt(transform.position.z);
+        //xCheck -= Mathf.FloorToInt(transform.position.x);
+        //zCheck -= Mathf.FloorToInt(transform.position.z);
 
         voxelMap[xCheck, yCheck, zCheck] = newID;
 

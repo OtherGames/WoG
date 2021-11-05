@@ -13,7 +13,7 @@ public class CameraTransformSystem : ComponentSystem
 
     protected override void OnUpdate()
     {
-        Position = UnityEngine.Camera.main.transform.position;
-        Rotation = UnityEngine.Camera.main.transform.rotation;
+        //Position = UnityEngine.Camera.main.transform.position;
+        //Rotation = UnityEngine.Camera.main.transform.rotation;
     }
 }
