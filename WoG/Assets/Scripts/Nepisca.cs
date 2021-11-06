@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
 public class Nepisca : MonoBehaviour
 {
@@ -12,10 +15,33 @@ public class Nepisca : MonoBehaviour
     Chunck chunck;
 
     [SerializeField]
+    float min = -0.5f;
+    [SerializeField]
+    float max = 0.5f;
+
+    //[SerializeField]
     List<byte> inputSpace = new List<byte>();
+    [SerializeField]
+    List<byte> inputTargetSpace = new List<byte>();
 
     bool actionInProgress;
     bool isFall;
+    bool isJump;
+
+    //===========================
+    float[,] weightsHidden;
+    float[] thresoldsHidden;
+    float[] weightedSumsHidden;
+    float[] outputsHidden;
+    float[,] weightsOutputLayer;
+
+    float[] outputs;
+    float[] thresoldsOutputLayer;
+    float[] weightedSumsOutput;
+
+    int countHiddenNeuron;
+    int p;
+    //===========================
 
     private IEnumerator Start()
     {
@@ -25,7 +51,167 @@ public class Nepisca : MonoBehaviour
 
         FindObjectOfType<Land>().transform.position -= new Vector3(1, 0, 1);
 
-        GenerateGrid(transform.position - new Vector3(0, 1, 0)); 
+        GenerateGrid(new Vector3(20, 103, 7));
+        GenerateTargetInputSpace();
+
+        inputSpace.AddRange(inputTargetSpace);
+
+        //=======================
+        countHiddenNeuron = inputSpace.Count * 3;
+        p = inputSpace.Count;
+
+        weightsHidden = new float[countHiddenNeuron, p];
+        thresoldsHidden = new float[countHiddenNeuron];
+        outputsHidden = new float[countHiddenNeuron];
+        weightsOutputLayer = new float[11, countHiddenNeuron];
+        weightedSumsHidden = new float[countHiddenNeuron];
+        outputs = new float[11];
+        thresoldsOutputLayer = new float[11];
+        weightedSumsOutput = new float[11];
+
+        StartCoroutine(Magic());
+    }
+
+    IEnumerator Magic()
+    {
+        // инициализация весов и порогов
+        for (int i = 0; i < countHiddenNeuron; i++)
+        {
+            for (int j = 0; j < p; j++)
+            {
+                weightsHidden[i, j] = Random.Range(min, max);
+            }
+
+            thresoldsHidden[i] = Random.Range(min, max);
+        }
+
+        for (int i = 0; i < 11; i++)
+        {
+            for (int j = 0; j < countHiddenNeuron; j++)
+            {
+                weightsOutputLayer[i, j] = Random.Range(min, max);
+            }
+
+            thresoldsOutputLayer[i] = Random.Range(min, max);
+        }
+
+        yield return null;
+
+        while (true)
+        {
+            yield return null;
+
+            while (isFall || actionInProgress || isJump)
+            {
+                yield return null;
+            }
+
+            yield return null;
+            yield return null;
+
+            while (isFall || actionInProgress || isJump)
+            {
+                yield return null;
+            }
+
+            // считаем выходные значения скрытого слоя
+            for (int i = 0; i < countHiddenNeuron; i++)
+            {
+                float wSum = 0;
+                for (int j = 0; j < p; j++)
+                {
+                    float x = inputSpace[j];
+                    float w = weightsHidden[i, j];
+                    wSum += w * x;
+                }
+                wSum -= thresoldsHidden[i];
+                weightedSumsHidden[i] = wSum;
+                outputsHidden[i] = ReLUActivation(wSum);
+            }
+            // считаем выходные значения выходного слоя
+            for (int i = 0; i < 11; i++)
+            {
+                float wSum = 0;
+                for (int j = 0; j < countHiddenNeuron; j++)
+                {
+                    float x = outputsHidden[j];
+                    float w = weightsOutputLayer[i, j];
+                    wSum += w * x;
+                }
+                wSum -= thresoldsOutputLayer[i];
+                weightedSumsOutput[i] = wSum;
+                outputs[i] = wSum;
+            }
+
+            // Смотрим что получилось на выходе
+            var maxV = outputs.Max();
+
+            for (int i = 0; i < outputs.Length; i++)
+            {
+                if(Mathf.Approximately(maxV, outputs[i]))
+                {
+                    ChooseAction(i, out var reward);
+                }
+            }
+
+            yield return new WaitForSeconds(0.17f);
+
+            UpdateCurrentSpace();
+
+            yield return new WaitForSeconds(0.17f);
+
+            // Корректировка весов
+        }
+    }
+
+    public void ChooseAction(int i, out int reward)
+    {
+        reward = 0;
+
+        if(i == 0)
+        {
+            ActionMoveOneBlockForward();
+        }
+        if (i == 1)
+        {
+            ActionMoveOneBlockBack();
+        }
+        if (i == 2)
+        {
+            ActionRotateLeft();
+        }
+        if (i == 3)
+        {
+            ActionRotateRight();
+        }
+        if (i == 4)
+        {
+            PlaceBottomBlock();
+        }
+        if (i == 5)
+        {
+            PlaceMiddleBlock();
+        }
+        if (i == 6)
+        {
+            PlaceTopBlock();
+        }
+        if (i == 7)
+        {
+            DestroyBottomBlock();
+        }
+        if (i == 8)
+        {
+            DestroyMiddleBlock();
+        }
+        if (i == 9)
+        {
+            DestroyTopBlock();
+        }
+        if (i == 10)
+        {
+            Jump();
+        }
     }
 
     void GenerateGrid(Vector3 center)
@@ -42,7 +228,8 @@ public class Nepisca : MonoBehaviour
                 {
                     Vector3 pos = new Vector3(x + center.x, y + center.y, z + center.z);
 
-                    //var marker = Instantiate(markerPrefab, pos, Quaternion.identity);
+                    var marker = Instantiate(markerPrefab, pos, Quaternion.identity);
+                    marker.GetComponentInChildren<TMPro.TMP_Text>().text = inputSpace.Count.ToString();
 
                     var voxel = chunck.voxelMap[(int)pos.x, (int)pos.y, (int)pos.z];
 
@@ -55,7 +242,7 @@ public class Nepisca : MonoBehaviour
                         if (voxel != 0)
                         {
                             inputSpace.Add(1);
-                            //marker.GetComponent<MeshRenderer>().sharedMaterial = new Material(mHave);
+                            marker.GetComponent<MeshRenderer>().sharedMaterial = new Material(mHave);
                         }
                         else
                         {
@@ -66,6 +253,63 @@ public class Nepisca : MonoBehaviour
                     
                 }
             }
+        }
+    }
+
+    void GenerateTargetInputSpace()
+    {
+        for (int i = 0; i < inputSpace.Count; i++)
+        {
+            inputTargetSpace.Add(inputSpace[i]);
+
+            if(i == 120 || i == 121 || i == 169 || i == 218)
+            {
+                inputTargetSpace[i] = 1;
+            }
+        }
+    }
+
+    void UpdateCurrentSpace()
+    {
+        var center = new Vector3(20, 103, 7);
+        List<byte> updatedSpace = new List<byte>();
+
+        for (int x = -gridRange; x < gridRange + 1; x++)
+        {
+            for (int y = -gridRange; y < gridRange + 1; y++)
+            {
+                for (int z = -gridRange; z < gridRange + 1; z++)
+                {
+                    Vector3 pos = new Vector3(x + center.x, y + center.y, z + center.z);
+
+                    var voxel = chunck.voxelMap[(int)pos.x, (int)pos.y, (int)pos.z];
+                    Vector3 playerPos = transform.position;
+                    playerPos.x = Mathf.RoundToInt(playerPos.x);
+                    playerPos.y = Mathf.RoundToInt(playerPos.y);
+                    playerPos.z = Mathf.RoundToInt(playerPos.z);
+                    if (pos == playerPos)
+                    {
+                        updatedSpace.Add(8);
+                    }
+                    else
+                    {
+                        if (voxel != 0)
+                        {
+                            updatedSpace.Add(1);
+                            
+                        }
+                        else
+                        {
+                            updatedSpace.Add(0);
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int i = 0; i < updatedSpace.Count; i++)
+        {
+            inputSpace[i] = updatedSpace[i];
         }
     }
 
@@ -198,14 +442,14 @@ public class Nepisca : MonoBehaviour
         IEnumerator Rotation()
         {
             //Vector3 curRot = transform.rotation.eulerAngles;
-
+            actionInProgress = true;
             for (int i = 0; i < 90; i++)
             {
                 transform.Rotate(new Vector3(0, -1, 0));
 
                 yield return null;
             }
-           
+            actionInProgress = false;
             //transform.rotation = Quaternion.Euler(newRot);
         }
     }
@@ -216,12 +460,14 @@ public class Nepisca : MonoBehaviour
 
         IEnumerator Rotation()
         {
+            actionInProgress = true;
             for (int i = 0; i < 90; i++)
             {
                 transform.Rotate(new Vector3(0, 1, 0));
 
                 yield return null;
             }
+            actionInProgress = false;
         }
     }
 
@@ -238,7 +484,7 @@ public class Nepisca : MonoBehaviour
 
         IEnumerator Action()
         {
-            isFall = true;
+            isJump = true;
             while (Vector3.Distance(transform.position, newPos) > 0.1f)
             {
                 yield return null;
@@ -247,7 +493,10 @@ public class Nepisca : MonoBehaviour
             }
 
             transform.position = newPos;
-            isFall = false;
+
+            yield return null;
+
+            isJump = false;
         }
     }
 
@@ -298,7 +547,7 @@ public class Nepisca : MonoBehaviour
     
     private void Update()
     {
-        if (chunck && !isFall)
+        if (chunck && !isFall && !isJump)
         {
             if (!CheckIsGrounded())
             {
@@ -360,5 +609,18 @@ public class Nepisca : MonoBehaviour
         {
             Jump();
         }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(1);
+        }
+    }
+
+    public static float ReLUActivation(float weightedSum)
+    {
+        if (weightedSum > 0)
+            return weightedSum;
+        else
+            return 0.01f;
     }
 }

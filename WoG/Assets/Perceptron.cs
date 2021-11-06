@@ -23,11 +23,11 @@ public class Perceptron : MonoBehaviour
     float max = 0.5f;
 
     List<float> etalons = new List<float>();
-    [SerializeField]
-    List<float> weights = new List<float>();
+    //[SerializeField]
+    //List<float> weights = new List<float>();
     [SerializeField]
     float[] yValues;
-    float threshold;
+    //float threshold;
 
     float[,] weightsHidden;
     float[] thresoldsHidden;
@@ -298,7 +298,7 @@ public class Perceptron : MonoBehaviour
             return 0.01f;
     }
 
-    IEnumerator OneLayerPerchick()
+    /*IEnumerator OneLayerPerchick()
     {
         // инициализация весов
         for (int i = 0; i < p; i++)
@@ -349,7 +349,7 @@ public class Perceptron : MonoBehaviour
 
 
         }
-    }
+    }/**/
 
     private void Update()
     {
