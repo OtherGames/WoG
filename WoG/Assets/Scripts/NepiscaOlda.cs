@@ -5,11 +5,8 @@ using System.Linq;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
-public class Nepisca : MonoBehaviour
+public class NepiscaOlda : MonoBehaviour
 {
-    public bool zapiskoAction = false;
-    public LineRenderer lineEtalons;
-    public LineRenderer lineOutput;
     public Material mNone;
     public Material mHave;
     public GameObject markerPrefab;
@@ -22,12 +19,10 @@ public class Nepisca : MonoBehaviour
     [SerializeField]
     float max = 0.5f;
 
-    [SerializeField]
-    public List<float> inputSpace = new List<float>();
     //[SerializeField]
+    List<float> inputSpace = new List<float>();
+    [SerializeField]
     List<float> inputTargetSpace = new List<float>();
-
-    List<SaveData> savesos = new List<SaveData>();
 
     bool actionInProgress;
     bool isFall;
@@ -42,28 +37,21 @@ public class Nepisca : MonoBehaviour
     static float[,] weightsOutputLayer;
 
     float[] outputs;
-    float[] softmax;
+    double[] softmax;
     static float[] thresoldsOutputLayer;
     [SerializeField]
     float[] weightedSumsOutput;
 
     int countHiddenNeuron;
     int p;
-    float playerValue = 3f;
-    float rotateValue = 1f;
-    float voxelValue = 1f;
     //===========================
     List<int> actionHistory = new List<int>();
-    [SerializeField]
-    List<PassData[]> passDatas = new List<PassData[]>();
-    int countActions = 0;
     //===========================
 
     Vector3 targetPos = new Vector3(20, 103, 7);
 
     private IEnumerator Start()
-    { 
-
+    {
         yield return new WaitForSeconds(1.5f);
 
         chunck = FindObjectOfType<Chunck>();
@@ -74,13 +62,9 @@ public class Nepisca : MonoBehaviour
         GenerateTargetInputSpace();
 
         inputSpace.AddRange(inputTargetSpace);
-        inputSpace.Add(rotateValue);
-        inputSpace.Add(0);
-        inputSpace.Add(0);
-        inputSpace.Add(0);
 
         //=======================
-        countHiddenNeuron = inputSpace.Count * 5;
+        countHiddenNeuron = inputSpace.Count / 2;
         p = inputSpace.Count;
 
         if(weightsHidden == null)
@@ -94,302 +78,23 @@ public class Nepisca : MonoBehaviour
         outputsHidden = new float[countHiddenNeuron];
         weightedSumsHidden = new float[countHiddenNeuron];
         outputs = new float[11];
-        softmax = new float[11];
+        softmax = new double[11];
         weightedSumsOutput = new float[11];
 
-        
+        StartCoroutine(Magic());
 
-        if (!zapiskoAction)
-        {
-            savesos = JsonXyeson.LoadData();
-            StartCoroutine(S_EbychimYchitelem());
-            //StartCoroutine(Magic());
-        }
-        
+        StartCoroutine(DelayRestart());
     }
 
-    IEnumerator S_EbychimYchitelem()
+    IEnumerator DelayRestart()
     {
-        for (int i = 0; i < countHiddenNeuron; i++)
-        {
-            for (int j = 0; j < p; j++)
-            {
-                weightsHidden[i, j] = Random.Range(min, max);
-            }
+        yield return new WaitForSeconds(300);
 
-            thresoldsHidden[i] = Random.Range(min, max);
-        }
-
-        for (int i = 0; i < 11; i++)
-        {
-            for (int j = 0; j < countHiddenNeuron; j++)
-            {
-                weightsOutputLayer[i, j] = Random.Range(min, max);
-            }
-
-            thresoldsOutputLayer[i] = Random.Range(min, max);
-        }
-        yield return null;
-
-        lineEtalons.positionCount = savesos.Count;
-        lineOutput.positionCount = savesos.Count;
-
-        for (int i = 0; i < savesos.Count; i++)
-        {
-            lineEtalons.SetPosition(i, new Vector3(i, savesos[i].actionIndex));
-        }
-
-        int countiter = 0;
-        while (teaching)
-        {
-            yield return null;
-
-            for (int iSample = 0; iSample < savesos.Count; iSample++)
-            {
-                countiter++;
-                
-                // считаем выходные значения скрытого слоя
-                for (int i = 0; i < countHiddenNeuron; i++)
-                {
-                    float wSum = 0;
-                    for (int j = 0; j < p; j++)
-                    {
-                        float x = savesos[iSample].inputishe[j];
-                        float w = weightsHidden[i, j];
-                        wSum += w * x;
-                    }
-                    wSum -= thresoldsHidden[i];
-                    weightedSumsHidden[i] = wSum;
-                    outputsHidden[i] = ReLUActivation(wSum);
-                }
-                // считаем выходные значения выходного слоя
-                for (int i = 0; i < 11; i++)
-                {
-                    float wSum = 0;
-                    for (int j = 0; j < countHiddenNeuron; j++)
-                    {
-                        float x = outputsHidden[j];
-                        float w = weightsOutputLayer[i, j];
-                        wSum += w * x;
-                    }
-                    wSum -= thresoldsOutputLayer[i];
-                    weightedSumsOutput[i] = wSum;
-                    outputs[i] = wSum;//ReLUActivation(wSum);//wSum;
-                }
-                // Считаем softmax
-                for (int i = 0; i < 11; i++)
-                {
-                    softmax[i] = outputs[i];//SoftmaxActivation(i);
-                }
-
-                // ===== Смотрим что получилось на выходе ======
-                // находим индекс максимального значения
-                var maxOut = softmax.Max();
-                int actionIndex = 0;
-                for (int i = 0; i < 11; i++)
-                {
-                    if (System.Math.Abs(maxOut - softmax[i]) < 0.00000001)
-                    {
-                        //softmax[i] = 0.9f;
-                        //softmax[i] = 1f;
-                        actionIndex = i;
-                    }
-                    else
-                    {
-                        //softmax[i] = 0.01f;
-                        //softmax[i] = 0f;
-                    }
-                }
-
-                //yield return new WaitForSeconds(0.17f);
-                yield return new WaitForSeconds(0.01f);
-                lineOutput.SetPosition(iSample, new Vector3(iSample, actionIndex));
-
-                // ===== Корректировка весов =====
-                float[] etalons = new float[11];
-                for (int i = 0; i < 11; i++)
-                {
-                    if(savesos[iSample].actionIndex == i)
-                    {
-                        //etalons[i] = 0.9f;
-                        etalons[i] = 1f;
-                    }
-                    else
-                    {
-                        //etalons[i] = 0.01f;
-                        etalons[i] = 0f;
-                    }
-                }
-
-                // Ошибки выходного слоя в виде награды за действия
-                float[] errOutput_J = new float[11];
-                float[] derivititi = new float[11];
-                float errOutSum = 0;
-                //for (int i = 0; i < 11; i++)
-                //{
-                //    errOutSum += (softmax[i] - etalons[i]) * softmax[i] * (1 - softmax[i]);
-                //    derivititi[i] = errOutSum;
-                //}
-                //for (int i = 0; i < 11; i++)
-                //{
-                //    errOutSum += (softmax[i] - etalons[i]) * softmax[i] * (1 - softmax[i]);
-                //}
-                //for (int i = 0; i < 11; i++)
-                //{
-                //    derivititi[i] = errOutSum;
-                //    //derivititi[i] = (softmax[i] - etalons[i]) * softmax[i] * (1 - softmax[i]);
-                //}
-                //print((0 - 1) * 0 * (1 - 0));
-                print(countiter + " ошибкО  " + errOutSum + " -=-= " + weightsOutputLayer[0, 0] + " ##### " + weightsHidden[0, 0]);
-
-                for (int i = 0; i < 11; i++)
-                {
-                    errOutput_J[i] = softmax[i] - etalons[i];
-                }
-
-
-                // Ошибки скрытого слоя
-                float[] errHiden_I = new float[countHiddenNeuron];
-                for (int i = 0; i < countHiddenNeuron; i++)
-                {
-                    float errSum = 0;
-                    for (int j = 0; j < 11; j++)
-                    {
-                        //errSum += errOutput_J[j] * weightsOutputLayer[j, i];
-                        errSum += errOutput_J[j] * weightsOutputLayer[j, i] * DerivativeReLU(weightedSumsOutput[j]);
-                        //errSum += errOutput_J[j] * weightsOutputLayer[j, i] * softmax[j] * (1 - softmax[j]);
-                        //errHiden_I[i] = errOutput_J[j] * weightsOutputLayer[j, i] * DerivativeReLU(weightedSumsOutput[j]);
-                    }
-                    errHiden_I[i] = errSum;
-                }
-
-                float a = 0.001f;
-                // Корректировка весов от скрытого слоя к выходному i -> j
-
-                for (int i = 0; i < 11; i++)
-                {
-                    for (int j = 0; j < countHiddenNeuron; j++)
-                    {
-                        float x = outputsHidden[j];
-                        //float w = weightsOutputLayer[i, j] - a * x * errOutput_J[i];// * (float)DerivativeSoftmax(i)/*DerivativeReLU(weightedSumsOutput[i])/**/ 
-                        //float w = weightsOutputLayer[i, j] - a * x * derivititi[i];
-                        //float w = weightsOutputLayer[i, j] - a * x * errOutput_J[i] * softmax[i] * (1 - softmax[i]);//DerivativeSoftmax(i);
-                        float w = weightsOutputLayer[i, j] - a * x * errOutput_J[i] * DerivativeReLU(weightedSumsOutput[i]);
-                        weightsOutputLayer[i, j] = w;
-                    }
-
-                    //thresoldsOutputLayer[i] = thresoldsOutputLayer[i] + a * errOutput_J[i];// * (float)DerivativeSoftmax(i);//(weightedSumsOutput[i]);
-                    //thresoldsOutputLayer[i] = thresoldsOutputLayer[i] + a * derivititi[i];
-                    //thresoldsOutputLayer[i] = thresoldsOutputLayer[i] + a * errOutput_J[i] * softmax[i] * (1 - softmax[i]);//DerivativeSoftmax(i);
-                    thresoldsOutputLayer[i] = thresoldsOutputLayer[i] + a * errOutput_J[i] * DerivativeReLU(weightedSumsOutput[i]);
-                }
-
-                //yield return new WaitForSeconds(0.17f);
-
-                // Корректировка весов от входного слоя к скрытому
-                for (int i = 0; i < countHiddenNeuron; i++)
-                {
-                    for (int j = 0; j < p; j++)
-                    {
-                        float w = weightsHidden[i, j];
-                        float x = savesos[iSample].inputishe[j];
-                        w = w - a * errHiden_I[i] * DerivativeReLU(weightedSumsHidden[i]) * x;
-                        weightsHidden[i, j] = w;
-                    }
-
-                    thresoldsHidden[i] = thresoldsHidden[i] + a * errHiden_I[i] * DerivativeReLU(weightedSumsHidden[i]);
-                }
-
-                // Чеки хуеки
-                bool check = true;
-                for (int i = 0; i < savesos.Count; i++)
-                {
-                    if (lineEtalons.GetPosition(i) != lineOutput.GetPosition(i))
-                    {
-                        check = false;
-                        break;
-                    }
-                }
-                if (check)
-                {
-                    teaching = false;
-                }
-            }
-        }
+        SceneManager.LoadScene(1);
     }
-
-    bool teaching = true;
-
-    IEnumerator MegaCheker()
-    {
-        yield return new WaitForSeconds(3f);
-
-        
-            //yield return new WaitForSeconds(0.17f);
-
-        for (int iSample = 0; iSample < savesos.Count; iSample++)
-        {
-            // считаем выходные значения скрытого слоя
-            for (int i = 0; i < countHiddenNeuron; i++)
-            {
-                float wSum = 0;
-                for (int j = 0; j < p; j++)
-                {
-                    float x = savesos[iSample].inputishe[j];
-                    float w = weightsHidden[i, j];
-                    wSum += w * x;
-                }
-                wSum -= thresoldsHidden[i];
-                weightedSumsHidden[i] = wSum;
-                outputsHidden[i] = ReLUActivation(wSum);
-            }
-            // считаем выходные значения выходного слоя
-            for (int i = 0; i < 11; i++)
-            {
-                float wSum = 0;
-                for (int j = 0; j < countHiddenNeuron; j++)
-                {
-                    float x = outputsHidden[j];
-                    float w = weightsOutputLayer[i, j];
-                    wSum += w * x;
-                }
-                wSum -= thresoldsOutputLayer[i];
-                weightedSumsOutput[i] = wSum;
-                outputs[i] = wSum;//ReLUActivation(wSum);//wSum;
-            }
-            // Считаем softmax
-            for (int i = 0; i < 11; i++)
-            {
-                softmax[i] = outputs[i];//SoftmaxActivation(i);
-            }
-
-            // ===== Смотрим что получилось на выходе ======
-            // находим индекс максимального значения
-            var maxOut = softmax.Max();
-            int actionIndex = 0;
-            for (int i = 0; i < 11; i++)
-            {
-                if (System.Math.Abs(maxOut - softmax[i]) < 0.00000001)
-                {
-                    actionIndex = i;
-                    break;
-                }
-            }
-
-            lineOutput.SetPosition(iSample, new Vector3(iSample, actionIndex));
-            ChooseAction(actionIndex, out var empty);
-            print(actionIndex + " ### " + iSample);
-            yield return new WaitForSeconds(1.7f);
-
-            UpdateCurrentSpace();
-        }
-        
-    }
-    //===================================================================================
 
     IEnumerator Magic()
     {
-        //print(0.9f - (-1));
         // инициализация весов и порогов
 
         if (Mathf.Approximately(weightsHidden[0, 7], 0))// Берем любое значение
@@ -413,11 +118,6 @@ public class Nepisca : MonoBehaviour
 
                 thresoldsOutputLayer[i] = Random.Range(min, max);
             }
-        }
-        else
-        {
-            print("Корректируем значения");
-            
         }
 
         yield return null;
@@ -480,20 +180,16 @@ public class Nepisca : MonoBehaviour
             float reward = 0;
             for (int i = 0; i < 11; i++)
             {
-                if (System.Math.Abs(maxV - softmax[i]) < 0.00000001)
+                if(System.Math.Abs(maxV - softmax[i]) < 0.00000001)
                 {
                     actionIndex = i;
                     ChooseAction(i, out reward);// Совершаем действие со средой
-                    softmax[i] = 1f;
-                }
-                else
-                {
-                    softmax[i] = 0;
+                    break;
                 }
             }
 
             yield return new WaitForSeconds(0.17f);
-
+            
             UpdateCurrentSpace();
             var checkReward = CheckTargetSpace();
             print(actionIndex + " # " + reward + " $ " + checkReward);
@@ -501,82 +197,38 @@ public class Nepisca : MonoBehaviour
             {
                 reward = checkReward;
             }
-
             yield return new WaitForSeconds(0.17f);
 
-            // Сбор данных на каждом шаге
-            //PassData[] datas = new PassData[11];
-            //for (int i = 0; i < 11; i++)
-            //{
-            //    if (i == actionIndex)
-            //        datas[i] = new PassData { rewardos = reward, output = softmax[i] };
-            //    else
-            //        datas[i] = new PassData { rewardos = 0, output = softmax[i] };
-
-            //}
-            //passDatas.Add(datas);
-            //countActions++;
-
-            //if (countActions > 30)
-            //{
-            float[] rewards = new float[11];
-            for (int i = 0; i < 11; i++)
-            {
-                if (i == actionIndex)
-                    if (reward < 0)
-                        rewards[i] = 0;
-                    else
-                        rewards[i] = 0.98f;
-                else if (reward < 0)
-                    rewards[i] = 0.05f;
-                else
-                    rewards[i] = 0;
-            }
             // ===== Корректировка весов =====
 
             // Ошибки выходного слоя в виде награды за действия
-            float[] errOutput_J = new float[11];
-            float[] derivititi = new float[11];
-            float errOutSum = 0;
-            for (int i = 0; i < 11; i++)
-            {
-                errOutSum += (softmax[i] - rewards[i]) * softmax[i] * (1 - softmax[i]);
-                derivititi[i] = errOutSum;
-            }
-            
-            for (int i = 0; i < 11; i++)
-            {
-                errOutput_J[i] = softmax[i] - rewards[i];/**///errOutSum;
-                //print(softmax[i] + " ===== "+ rewards[i] + " ошибко - ... " + errOutput_J[i]);
-            }
-
-            
+            float[] errOutput = new float[11];
+            errOutput[actionIndex] = reward * -1;
             // Ошибки скрытого слоя
-            float[] errHiden_I = new float[countHiddenNeuron];
+            float[] errHiden = new float[countHiddenNeuron];
             for (int i = 0; i < countHiddenNeuron; i++)
             {
                 float errSum = 0;
                 for (int j = 0; j < 11; j++)
                 {
-                    errSum += errOutput_J[j] * weightsOutputLayer[j, i];
+                    errSum += errOutput[j] * DerivativeReLU(weightedSumsOutput[j]) * weightsOutputLayer[j, i];
                 }
-                errHiden_I[i] = errSum;
+                errHiden[i] = errSum;
             }
 
-            float a = 0.15f;
+            float a = 0.05f;
             // Корректировка весов от скрытого слоя к выходному i -> j
-
+            
             for (int i = 0; i < 11; i++)
             {
                 for (int j = 0; j < countHiddenNeuron; j++)
                 {
-                    //float w = weightsOutputLayer[i, j] - a * outputsHidden[j] * errOutput_J[i];// * (float)DerivativeSoftmax(i)/*DerivativeReLU(weightedSumsOutput[i])/**/ 
-                    float w = weightsOutputLayer[i, j] - a * outputsHidden[j] * derivititi[i];
+                    float w = weightsOutputLayer[i, j] - a * errOutput[i] * DerivativeReLU(weightedSumsOutput[i]) * outputsHidden[j];
                     weightsOutputLayer[i, j] = w;
                 }
 
-                //thresoldsOutputLayer[i] = thresoldsOutputLayer[i] + a * errOutput_J[i];// * (float)DerivativeSoftmax(i);//(weightedSumsOutput[i]);
-                thresoldsOutputLayer[i] = thresoldsOutputLayer[i] + a * derivititi[i];
+                thresoldsOutputLayer[i] = thresoldsOutputLayer[i] + a * errOutput[i] * DerivativeReLU(weightedSumsOutput[i]);
+
             }
 
             yield return new WaitForSeconds(0.17f);
@@ -588,98 +240,91 @@ public class Nepisca : MonoBehaviour
                 {
                     float w = weightsHidden[i, j];
                     float x = inputSpace[j];
-                    w = w - a * errHiden_I[i] * DerivativeReLU(weightedSumsHidden[i]) * x;
+                    w = w - a * errHiden[i] * DerivativeReLU(weightedSumsHidden[i]) * x;
                     weightsHidden[i, j] = w;
                 }
 
-                thresoldsHidden[i] = thresoldsHidden[i] + a * errHiden_I[i] * DerivativeReLU(weightedSumsHidden[i]);
+                thresoldsHidden[i] = thresoldsHidden[i] + a * errHiden[i] * DerivativeReLU(weightedSumsHidden[i]);
             }
 
-            #region Ебанина
             // ПОВТОРНАЯ КОРРЕКТИРОВКА ВЕСОВ ПРИ СЛИШКОМ БОЛЬШИХ ЗНАЧЕНИЯХ
 
             // Корректировка весов
 
             // Ошибки выходного слоя в виде награды за действия
-            //if (weightedSumsOutput[0] < -1000)
-            //{
-            //    print("Ебашим вес");
-            //    float[] errOutputCorrect = new float[11];
+            if (weightedSumsOutput[0] < -1000)
+            {
+                print("Ебашим вес");
+                float[] errOutputCorrect = new float[11];
 
-            //    for (int i = 0; i < errOutputCorrect.Length; i++)
-            //    {
-            //        errOutputCorrect[i] = -3f;
-            //    }
+                for (int i = 0; i < errOutputCorrect.Length; i++)
+                {
+                    errOutputCorrect[i] = -3f;
+                }
 
-            //    // Ошибки скрытого слоя
-            //    float[] errHidenCorrect = new float[countHiddenNeuron];
-            //    for (int i = 0; i < countHiddenNeuron; i++)
-            //    {
-            //        float errSum = 0;
-            //        for (int j = 0; j < 11; j++)
-            //        {
-            //            errSum += errOutputCorrect[j] * DerivativeReLU(weightedSumsOutput[j]) * weightsOutputLayer[j, i];
-            //        }
-            //        errHidenCorrect[i] = errSum;
-            //    }
+                // Ошибки скрытого слоя
+                float[] errHidenCorrect = new float[countHiddenNeuron];
+                for (int i = 0; i < countHiddenNeuron; i++)
+                {
+                    float errSum = 0;
+                    for (int j = 0; j < 11; j++)
+                    {
+                        errSum += errOutputCorrect[j] * DerivativeReLU(weightedSumsOutput[j]) * weightsOutputLayer[j, i];
+                    }
+                    errHidenCorrect[i] = errSum;
+                }
 
+                
+                // Корректировка весов от скрытого слоя к выходному i -> j
 
-            //    // Корректировка весов от скрытого слоя к выходному i -> j
+                for (int i = 0; i < 11; i++)
+                {
+                    for (int j = 0; j < countHiddenNeuron; j++)
+                    {
+                        float w = weightsOutputLayer[i, j] - a * errOutputCorrect[i] * DerivativeReLU(weightedSumsOutput[i]) * outputsHidden[j];
+                        weightsOutputLayer[i, j] = w;
+                    }
 
-            //    for (int i = 0; i < 11; i++)
-            //    {
-            //        for (int j = 0; j < countHiddenNeuron; j++)
-            //        {
-            //            float w = weightsOutputLayer[i, j] - a * errOutputCorrect[i] * DerivativeReLU(weightedSumsOutput[i]) * outputsHidden[j];
-            //            weightsOutputLayer[i, j] = w;
-            //        }
+                    thresoldsOutputLayer[i] = thresoldsOutputLayer[i] + a * errOutputCorrect[i] * DerivativeReLU(weightedSumsOutput[i]);
 
-            //        thresoldsOutputLayer[i] = thresoldsOutputLayer[i] + a * errOutputCorrect[i] * DerivativeReLU(weightedSumsOutput[i]);
+                }
 
-            //    }
+                yield return new WaitForSeconds(0.17f);
+                // Корректировка весов от входного слоя к скрытому
 
-            //    yield return new WaitForSeconds(0.17f);
-            //    // Корректировка весов от входного слоя к скрытому
+                for (int i = 0; i < countHiddenNeuron; i++)
+                {
+                    for (int j = 0; j < p; j++)
+                    {
+                        float w = weightsHidden[i, j];
+                        float x = inputSpace[j];
+                        w = w - a * errHidenCorrect[i] * DerivativeReLU(weightedSumsHidden[i]) * x;
+                        weightsHidden[i, j] = w;
+                    }
 
-            //    for (int i = 0; i < countHiddenNeuron; i++)
-            //    {
-            //        for (int j = 0; j < p; j++)
-            //        {
-            //            float w = weightsHidden[i, j];
-            //            float x = inputSpace[j];
-            //            w = w - a * errHidenCorrect[i] * DerivativeReLU(weightedSumsHidden[i]) * x;
-            //            weightsHidden[i, j] = w;
-            //        }
-
-            //        thresoldsHidden[i] = thresoldsHidden[i] + a * errHidenCorrect[i] * DerivativeReLU(weightedSumsHidden[i]);
-            //    }
-            //}
-            #endregion
-
-            yield return new WaitForSeconds(.7f);
-
-            //SceneManager.LoadScene(1);
-            //}
+                    thresoldsHidden[i] = thresoldsHidden[i] + a * errHidenCorrect[i] * DerivativeReLU(weightedSumsHidden[i]);
+                }
+            }
         }
     }
 
     public void ChooseAction(int i, out float reward)
     {
-        reward = 0.01f;
+        reward = 0.001f;
 
-        //actionHistory.Add(i);
-        //if (actionHistory.Count >= 5)
-        //{
-        //    actionHistory.RemoveAt(0);
+        actionHistory.Add(i);
+        if(actionHistory.Count >= 3)
+        {
+            actionHistory.RemoveAt(0);
 
-        //    int firstValue = actionHistory.First();
-        //    var simValue = actionHistory.FindAll(v => v == firstValue);
-        //    if (simValue.Count == actionHistory.Count)
-        //    {
-        //        reward = -1;
-        //        return;
-        //    }
-        //}
+            int firstValue = actionHistory.First();
+            var simValue = actionHistory.FindAll(v => v == firstValue);
+            if (simValue.Count == actionHistory.Count)
+            {
+                reward = -1;
+                return;
+            }
+        }
 
         if (i == 0)
         {
@@ -688,14 +333,14 @@ public class Nepisca : MonoBehaviour
                 reward = -1;
             }
         }
-        if (i == 2)
+        if (i == 1)
         {
             if (!ActionMoveOneBlockBack())
             {
                 reward = -1;
             }
         }
-        if (i == 1)
+        if (i == 2)
         {
             ActionRotateLeft();
         }
@@ -794,7 +439,7 @@ public class Nepisca : MonoBehaviour
 
                     if (!firstCheck)
                     {
-                        return 1;
+                        return 13;
                     }
                 }
             }
@@ -829,13 +474,13 @@ public class Nepisca : MonoBehaviour
 
                     if (pos == center)
                     {
-                        inputSpace.Add(playerValue);
+                        inputSpace.Add(0.5f);
                     }
                     else
                     {
                         if (voxel != 0)
                         {
-                            inputSpace.Add(voxelValue);
+                            inputSpace.Add(1f);
                             marker.GetComponent<MeshRenderer>().sharedMaterial = new Material(mHave);
                         }
                         else
@@ -854,24 +499,16 @@ public class Nepisca : MonoBehaviour
     {
         for (int i = 0; i < inputSpace.Count; i++)
         {
-            if(Mathf.Approximately(inputSpace[i], playerValue))
-            {
-                inputTargetSpace.Add(0);
-            }
-            else
-            {
-                inputTargetSpace.Add(inputSpace[i]);
-            }
-            
+            inputTargetSpace.Add(inputSpace[i]);
 
             if(i == 120 || i == 121 || i == 169 || i == 218)
             {
-                inputTargetSpace[i] = voxelValue;
+                inputTargetSpace[i] = 1f;
             }
         }
     }
 
-    public void UpdateCurrentSpace()
+    void UpdateCurrentSpace()
     {
         var center = targetPos;
         List<float> updatedSpace = new List<float>();
@@ -891,13 +528,13 @@ public class Nepisca : MonoBehaviour
                     playerPos.z = Mathf.RoundToInt(playerPos.z);
                     if (pos == playerPos)
                     {
-                        updatedSpace.Add(playerValue);
+                        updatedSpace.Add(0.5f);
                     }
                     else
                     {
                         if (voxel != 0)
                         {
-                            updatedSpace.Add(voxelValue);
+                            updatedSpace.Add(1f);
                             
                         }
                         else
@@ -913,37 +550,6 @@ public class Nepisca : MonoBehaviour
         {
             inputSpace[i] = updatedSpace[i];
         }
-
-        var rots = GetRotationInput();
-        int count = inputSpace.Count;
-        for (int i = 0; i < rots.Count; i++)
-        {
-            inputSpace[count - rots.Count + i] = rots[i];
-            //print(rots[i]+ " =========================================");
-        }
-    }
-
-    List<float> GetRotationInput()
-    {
-        List<float> rotations = new List<float>();
-        if (transform.forward.z > 0.7f)
-            rotations.Add(rotateValue);
-        else
-            rotations.Add(0f);
-        if (transform.forward.z < -0.7f)
-            rotations.Add(rotateValue);
-        else
-            rotations.Add(0f);
-        if (transform.forward.x > 0.7f)
-            rotations.Add(rotateValue);
-        else
-            rotations.Add(0f);
-        if (transform.forward.x < -0.7f)
-            rotations.Add(rotateValue);
-        else
-            rotations.Add(0f);
-        
-        return rotations;
     }
 
     #region Ставить Блоки
@@ -1313,27 +919,7 @@ public class Nepisca : MonoBehaviour
         }
     }
 
-    private void CreateDataShot(int actionIndex)
-    {
-        float[] inputs = inputSpace.ToArray();
-        SaveData sd = new SaveData
-        {
-            inputishe = inputs.ToList(),
-            actionIndex = actionIndex,
-        };
-        savesos.Add(sd);
-        
-        StartCoroutine(Delay());
-
-        IEnumerator Delay()
-        {
-            yield return new WaitForSeconds(1.5f);
-
-            UpdateCurrentSpace();
-            print("Просрансво обновлено..");
-        }
-    }
-
+    
     private void Update()
     {
         if (chunck && !isFall && !isJump)
@@ -1347,83 +933,61 @@ public class Nepisca : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             print(ActionMoveOneBlockForward());
-            CreateDataShot(0);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             ActionRotateLeft();
-            CreateDataShot(1);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
             ActionRotateRight();
-            CreateDataShot(3);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
             ActionMoveOneBlockBack();
-            CreateDataShot(2);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha5))
         {
             PlaceMiddleBlock();
-            CreateDataShot(5);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha6))
         {
             PlaceTopBlock();
-            CreateDataShot(6);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha7))
         {
             PlaceBottomBlock();
-            CreateDataShot(4);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha8))
         {
             DestroyMiddleBlock();
-            CreateDataShot(8);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha9))
         {
             DestroyTopBlock();
-            CreateDataShot(9);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha0))
         {
             DestroyBottomBlock();
-            CreateDataShot(7);
         }
 
         if (Input.GetKeyDown(KeyCode.Minus))
         {
             Jump();
-            CreateDataShot(10);
         }
 
         if (Input.GetKeyDown(KeyCode.R))
         {
             SceneManager.LoadScene(1);
-        }
-
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            JsonXyeson.SaveFile(savesos);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Z))
-        {
-            teaching = false;
-            StartCoroutine(MegaCheker());
         }
     }
 
@@ -1443,27 +1007,14 @@ public class Nepisca : MonoBehaviour
             return 0.01f;
     }
 
-    public float SoftmaxActivation(int sumIndex)
+    public double SoftmaxActivation(int sumIndex)
     {
-        float numerator = Mathf.Exp(outputs[sumIndex]);
-        float denominator = 0;
+        double numerator = Mathf.Exp(outputs[sumIndex]);
+        double denominator = 0;
         for (int i = 0; i < outputs.Length; i++)
         {
             denominator += Mathf.Exp(outputs[i]);
         }
         return numerator / denominator;
-    }
-
-    public float DerivativeSoftmax(int sumIndex)
-    {
-        float y = SoftmaxActivation(sumIndex);
-        return y * (1 - y);
-    }
-
-    [System.Serializable]
-    public struct PassData
-    {
-        public float rewardos;
-        public float output;
     }
 }

@@ -110,14 +110,13 @@ public class Perceptron : MonoBehaviour
         etalons.Add(1.153f);
         etalons.Add(0.153f);
         etalons.Add(-1.153f);
+
         for (int i = 0; i < rowLength; i++)
         {
             yield return null;
             lineRenderer.positionCount = i + 1;
             lineRenderer.SetPosition(i, new Vector2(i, etalons[i]));
         }
-
-
 
         // инициализация весов
         thresoldOutputLayer = Random.Range(min, max);
