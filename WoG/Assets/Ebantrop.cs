@@ -135,6 +135,9 @@ public class Ebantrop : MonoBehaviour
 
             for (int iSample = 0; iSample < savesos.Count; iSample++)
             {
+                int stoshaIndex = Random.Range(0, savesos.Count);
+                var stoshaSample = savesos[stoshaIndex];
+
                 for (int i = 0; i < countHiddenNeuron_1; i++)
                 {
                     float wSum = 0;
