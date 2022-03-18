@@ -24,19 +24,14 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
         {
             ref var hitComponent = ref world.GetPool<ChunckHitEvent>().Get(hitEntity);
 
-            ref var chunck = ref chunckWorld.GetChunk(hitComponent.position);
+            // зачем-то нужно прибавлять 1 по x, хз почему так, но именно так работает
+            var posKostyl = hitComponent.position + Vector3.right;
+
+            ref var chunck = ref chunckWorld.GetChunk(posKostyl);
 
             WorldHit(ref chunck, ref hitComponent);
 
-            //foreach (var chunckEntity in chunckFilter)
-            //{
-            //    ref var chunckComponent = ref world.GetPool<ChunckComponent>().Get(chunckEntity);
-
-            //    if(chunckComponent.collider == hitComponent.collider)
-            //    {
-            //        WorldHit(ref chunckComponent, ref hitComponent);
-            //    }
-            //}
+            
         }
     }
 
@@ -48,10 +43,12 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
         int y = (int)(hit.position.y - pos.y);
         int z = (int)(hit.position.z - pos.z);
 
+        //chunck = ref chunckWorld.GetChunk(new Vector3(x, y, z));
+
         chunck.blocks[x, y, z] = hit.blockId;
 
         var generator = Service<MeshGenerator>.Get();
-        var mesh = generator.UpdateMesh(ref chunck);
+        var mesh = generator.UpdateMesh(ref chunck);//, (int)pos.x, (int)pos.y, (int)pos.z);
         chunck.meshFilter.mesh = mesh;
         chunck.collider.sharedMesh = mesh;
 
@@ -67,6 +64,8 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
 
             if (xIdx < 0 || xIdx >= worldSize || zIdx < 0 || zIdx >= worldSize)
                 continue;
+
+            //chunckWorld.chuncks[0, 0, 0] = chunck;// HOT FIX
 
             if (!IsBlockChunk((int)checkingBlockPos.x, (int)checkingBlockPos.y, (int)checkingBlockPos.z))
             {

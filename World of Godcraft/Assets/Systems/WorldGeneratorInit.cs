@@ -412,8 +412,19 @@ public class BlockUVS
                 return new BlockUVS(1, 15);
             case 3:
                 return new BlockUVS(2, 15);
+            case 4:
+                return new BlockUVS(0, 14);
+            case 5:
+                return new BlockUVS(1, 1);
+            case 6:
+                return new BlockUVS(1, 3);
+            case 7:
+                return new BlockUVS(4, 2);
+            case 8:
+                return new BlockUVS(0, 6);
+            case 9:
+                return new BlockUVS(0, 2);
 
-            
         }
 
         return new BlockUVS(0, 15, 3, 15, 2, 15);

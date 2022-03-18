@@ -1,18 +1,44 @@
+using LeopotamGroup.Globals;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using PlayFab;
+using PlayFab.ClientModels;
+using Photon.Pun;
+using UnityStandardAssets.Characters.FirstPerson;
+using System;
 
 public class PlayerCharacter : MonoBehaviour
 {
-    public GameObject highlight;
+    [SerializeField]
+    private Transform highlightPrefab;
+    [SerializeField]
+    private GameObject cam;
     public LayerMask lm;
 
+    Transform highlight;
 
     WorldOfGodcraft godcraft;
+
+    new PhotonView networkView;
+
+    internal Action<Entity, ChunckHitEvent> onChunkHit;
 
     // Start is called before the first frame update
     void Start()
     {
+        networkView = GetComponent<PhotonView>();
+
+        if (!networkView.IsMine)
+        {
+            Destroy(cam);
+            
+            Destroy(GetComponent<FirstPersonController>());
+            Destroy(GetComponent<CharacterController>());
+            Destroy(GetComponent<AudioSource>());
+        }
+
+        highlight = Instantiate(highlightPrefab);
         godcraft = FindObjectOfType<WorldOfGodcraft>();
     }
 
@@ -20,6 +46,7 @@ public class PlayerCharacter : MonoBehaviour
     void Update()
     {
         BlockController();
+        SaveController();
     }
 
     void BlockController()
@@ -42,7 +69,7 @@ public class PlayerCharacter : MonoBehaviour
 
             Vector3 blockPosition = new(x, y, z);
 
-            highlight.transform.position = blockPosition;
+            highlight.position = blockPosition;
 
 
             
@@ -57,12 +84,11 @@ public class PlayerCharacter : MonoBehaviour
                 component.position = blockPosition;
                 component.blockId = 0;
 
+                onChunkHit?.Invoke(new Entity { id = e }, component);
+
             }
             if (Input.GetMouseButtonDown(1))
             {
-                //var chunck = FindObjectOfType<Chunck>();
-                //chunck.EditVoxel(blockPosition + hit.normal, 1);
-
                 var e = godcraft.EcsWorld.NewEntity();
 
                 var pool = godcraft.EcsWorld.GetPool<ChunckHitEvent>();
@@ -70,13 +96,86 @@ public class PlayerCharacter : MonoBehaviour
                 ref var component = ref pool.Get(e);
                 component.collider = hit.collider;
                 component.position = blockPosition + hit.normal;
-                component.blockId = 1;
+                component.blockId = InputHandler.Instance.blockID;
+
+                onChunkHit?.Invoke(new Entity { id = e }, component);
             }
 
         }
         else
         {
-            highlight.transform.position = default;
+            highlight.position = default;
         }
+    }
+
+    void SaveController()
+    {
+        if (Input.GetKeyDown(KeyCode.N))
+        {
+            var w = Service<World>.Get();
+
+            ChuncksData chuncksData;
+            chuncksData.chuncks = new List<byte[,,]>();
+
+            StartCoroutine(Requests());
+
+            IEnumerator Requests()
+            {
+                int idx = 0;
+                foreach (var item in w.chuncks)
+                {
+                    var json = Json.Serialize(item.blocks);
+
+                    var request = new UpdateUserDataRequest
+                    {
+                        //KeysToRemove = new List<string> { $"chunks-{idx}" }
+                        Data = new Dictionary<string, string>
+                        {
+                            {$"chunks-{idx}", json }
+                        }
+                    };
+
+                    PlayFabClientAPI.UpdateUserData(request, OnSuccess, OnFailure);
+
+                    idx++;
+
+                    yield return new WaitForSeconds(0.7f);
+                }
+            }
+
+            
+        }
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            var r = new UpdateUserDataRequest { KeysToRemove = new List<string> { "chunks" } };
+            PlayFabClientAPI.UpdateUserData(r, OnSuccess, OnFailure);
+        }
+    }
+
+    private void OnSuccess(UpdateUserDataResult obj)
+    {
+        Debug.Log($"{obj.ToJson()}");
+    }
+
+    private void OnFailure(PlayFabError obj)
+    {
+        Debug.Log($"μμμμμ, υσύςΰ {obj.GenerateErrorReport()}");
+    }
+
+    void GetData()
+    {
+        PlayFabClientAPI.GetUserData(new GetUserDataRequest(), OnDataRecieved, OnFailure);
+    }
+
+    private void OnDataRecieved(GetUserDataResult obj)
+    {
+        //obj.Data.ContainsKey("")
+        //obj.Data[""].Value
+    }
+
+    public struct ChuncksData
+    {
+        public List<byte[,,]> chuncks;
     }
 }

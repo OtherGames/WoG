@@ -3,7 +3,7 @@ using Leopotam.EcsLite.ExtendedSystems;
 using UnityEngine;
 using Leopotam.EcsLite.Di;
 using LeopotamGroup.Globals;
-
+using Client;
 
 sealed class WorldOfGodcraft : MonoBehaviour
 {
@@ -30,6 +30,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             // register your systems here, for example:
             .Add(new WorldGeneratorInit())
             .Add(new WorldRaycastHitSystem())
+            .Add(new NetworkChunckChangeSendSystem())
 
             // .Add (new TestSystem2 ())
 
@@ -40,7 +41,8 @@ sealed class WorldOfGodcraft : MonoBehaviour
             // .Add (new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem ("events"))
             .Add(new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem())
 #endif
-                .DelHere<ChunckHitEvent>()
+            .DelHere<ChunckHitEvent>()
+            .DelHere<NetworkChunckChanged>()
 
 
             .Inject(world)

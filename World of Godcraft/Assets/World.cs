@@ -28,7 +28,7 @@ public class World
     {
 		int size = WorldGeneratorInit.worldSize;
 
-		chuncks = new ChunckComponent[size, size, size];
+		chuncks = new ChunckComponent[size, 1, size];
 
 	}
 }
