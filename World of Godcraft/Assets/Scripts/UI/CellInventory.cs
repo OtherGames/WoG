@@ -7,6 +7,7 @@ using TMPro;
 public class CellInventory : MonoBehaviour
 {
     [SerializeField] Transform objectHolder;
+    [SerializeField] public TMP_Text labelCount;
 
     internal void Init(ref InventoryItem item)
     {
@@ -16,5 +17,7 @@ public class CellInventory : MonoBehaviour
 
         item.view.SetActive(true);
         item.view.layer = 5;
+
+        labelCount.text = item.count > 1 ? $"x{item.count}" : "";
     }
 }

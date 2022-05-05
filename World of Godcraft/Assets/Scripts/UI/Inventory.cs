@@ -28,6 +28,7 @@ public class Inventory : MonoBehaviour
         {
             var cell = Instantiate(cellPrefab, parent);
             cells.Add(cell);
+            cell.labelCount.text = "";
         }
     }
 
@@ -61,9 +62,18 @@ public class Inventory : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.E))
         {
-
-
             print(filter.GetEntitiesCount());
+        }
+
+        if (IsShowed)
+        {
+            var filterTaked = ecsWorld.Filter<BlockTaked>().End();
+
+            if(filterTaked.GetEntitiesCount() > 0)
+            {
+                print("ìäý");
+                Show();
+            }
         }
     }
 }
