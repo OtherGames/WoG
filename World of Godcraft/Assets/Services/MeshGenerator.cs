@@ -164,30 +164,7 @@ public class MeshGenerator
                             CreateBlockSide(BlockSide.Bottom, x, y, z, b);
                         }
 
-                        //if ((z + 1 >= size && BlockExist(x + posX, y + posY, z + 1 + posZ) == 0) || (!(z + 1 >= size) && chunck.blocks[x, y, z + 1] == 0) || frontCheck)
-                        //{
-                        //    CreateBlockSide(BlockSide.Front, x, y, z, b);
-                        //}
-                        //if ((z - 1 < 0 && BlockExist(x + posX, y + posY, z - 1 + posZ) == 0) || (!(z - 1 < 0) && chunck.blocks[x, y, z - 1] == 0) || backCheck)
-                        //{
-                        //    CreateBlockSide(BlockSide.Back, x, y, z, b);
-                        //}
-                        //if ((x + 1 >= size && BlockExist(x + 1 + posX, y + posY, z + posZ) == 0) || (!(x + 1 >= size) && chunck.blocks[x + 1, y, z] == 0) || rightCheck)
-                        //{
-                        //    CreateBlockSide(BlockSide.Right, x, y, z, b);
-                        //}
-                        //if ((x - 1 < 0 && BlockExist(x - 1 + posX, y + posY, z + posZ) == 0) || (!(x - 1 < 0) && chunck.blocks[x - 1, y, z] == 0) || leftCheck)
-                        //{
-                        //    CreateBlockSide(BlockSide.Left, x, y, z, b);
-                        //}
-                        //if (!(y + 1 >= size) && chunck.blocks[x, y + 1, z] == 0 || y + 1 >= size)
-                        //{
-                        //    CreateBlockSide(BlockSide.Top, x, y, z, b);
-                        //}
-                        //if (!(y - 1 < 0) && chunck.blocks[x, y - 1, z] == 0)
-                        //{
-                        //    CreateBlockSide(BlockSide.Bottom, x, y, z, b);
-                        //}
+                        
                     }
                 }
             }
@@ -212,7 +189,7 @@ public class MeshGenerator
 
         int k = 10000;
 
-        Vector3 offset = new Vector3(Random.value * k, Random.value * k, Random.value * k);
+        Vector3 offset = new(Random.value * k, Random.value * k, Random.value * k);
         //offset = Vector3.zero;
         float noiseX = Mathf.Abs((float)(x + offset.x) / noiseScale);
         float noiseY = Mathf.Abs((float)(y + offset.y) / noiseScale);
@@ -296,8 +273,8 @@ public class MeshGenerator
                 new Vector3(-1, 1, 1 ),
                 new Vector3( 0, 1, 1 ),
             };
-        List<Vector3> verticesBottom = new List<Vector3>
-            {
+        List<Vector3> verticesBottom = new()
+        {
                 new Vector3( 0, 0, 0 ),
                 new Vector3(-1, 0, 0 ),
                 new Vector3(-1, 0, 1 ),

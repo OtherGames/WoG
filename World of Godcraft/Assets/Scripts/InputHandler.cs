@@ -60,5 +60,15 @@ public class InputHandler : MonoBehaviour
         {
             blockID = 9;
         }
+
+        if (Input.GetKeyDown(KeyCode.Alpha0))
+        {
+            blockID = 10;
+        }
+
+        if(Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.I))
+        {
+
+        }
     }
 }

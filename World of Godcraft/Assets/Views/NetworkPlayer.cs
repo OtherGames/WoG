@@ -21,7 +21,7 @@ public class NetworkPlayer : MonoBehaviour
 
     private void ChunckChanged(int sdfsdf)
     {
-        print(sdfsdf + " Чанк был измене");
+        print(sdfsdf + " Чанк был изменен");
     }
 
     private void Chunck_Changed(Entity entity, ChunckHitEvent data)

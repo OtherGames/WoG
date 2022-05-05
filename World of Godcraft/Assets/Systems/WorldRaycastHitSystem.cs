@@ -14,24 +14,58 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
     [EcsInject]
     readonly World chunckWorld = default;
 
+    [EcsWorld]
+    readonly EcsWorld world = default;
+
+    float hitTimer = 0;
+    int countHit = 0;
+
     public void Run(EcsSystems systems)
     {
         var world = systems.GetWorld();
 
         var chunckFilter = world.Filter<ChunckComponent>().End();
 
+        if (hitFilter.GetEntitiesCount() == 0)
+        {
+            hitTimer = 0;
+            countHit = 0;
+            return;
+        }
+
+        hitTimer += Time.deltaTime;
+
         foreach (var hitEntity in hitFilter)
         {
-            ref var hitComponent = ref world.GetPool<ChunckHitEvent>().Get(hitEntity);
+            var pool = world.GetPool<ChunckHitEvent>();
 
-            // зачем-то нужно прибавл€ть 1 по x, хз почему так, но именно так работает
-            var posKostyl = hitComponent.position + Vector3.right;
+            ref var hitComponent = ref pool.Get(hitEntity);
 
-            ref var chunck = ref chunckWorld.GetChunk(posKostyl);
+            if(hitComponent.blockId > 0)
+            {
+                countHit = int.MaxValue;
+            }
 
-            WorldHit(ref chunck, ref hitComponent);
+            if (hitTimer > 0.1f)
+            {
+                countHit++;
+                hitTimer = 0;
 
-            
+                Debug.Log(countHit);
+            }
+
+            if (countHit > 8)
+            {
+                // зачем-то нужно прибавл€ть 1 по оси X, хз почему так, но именно так работает
+                var fixedPos = hitComponent.position + Vector3.right;
+
+                ref var chunck = ref chunckWorld.GetChunk(fixedPos);
+
+                WorldHit(ref chunck, ref hitComponent);
+
+                pool.Del(hitEntity);
+
+            }
         }
     }
 
@@ -39,12 +73,14 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
     {
         var pos = chunck.renderer.transform.position;
 
+        // зачем-то нужно прибавл€ть 1 по оси X, хз почему так, но именно так работает
         int x = (int)(hit.position.x - pos.x) + 1;
         int y = (int)(hit.position.y - pos.y);
         int z = (int)(hit.position.z - pos.z);
 
         //chunck = ref chunckWorld.GetChunk(new Vector3(x, y, z));
 
+        byte blockID = chunck.blocks[x, y, z];
         chunck.blocks[x, y, z] = hit.blockId;
 
         var generator = Service<MeshGenerator>.Get();
@@ -65,8 +101,6 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
             if (xIdx < 0 || xIdx >= worldSize || zIdx < 0 || zIdx >= worldSize)
                 continue;
 
-            //chunckWorld.chuncks[0, 0, 0] = chunck;// HOT FIX
-
             if (!IsBlockChunk((int)checkingBlockPos.x, (int)checkingBlockPos.y, (int)checkingBlockPos.z))
             {
                 ref var otherChunck = ref chunckWorld.GetChunk(checkingBlockPos + pos);
@@ -78,6 +112,8 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
 
         }
 
+        if (hit.blockId == 0)
+            CreateDropedBlock(blockID, x + pos.x, y + pos.y, z + pos.z);
     }
 
     bool IsBlockChunk(int x, int y, int z)
@@ -86,6 +122,29 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
             return false;
         else
             return true;
+    }
+
+    void CreateDropedBlock(byte id, float x, float y, float z)
+    {
+        var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
+        var dropedBlock = new GameObject("Droped Block");
+        dropedBlock.AddComponent<MeshRenderer>().material = Object.FindObjectOfType<WorldOfGodcraft>().mat;
+        dropedBlock.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMesh(id);
+        dropedBlock.AddComponent<DropedBlock>();
+        dropedBlock.transform.localScale /= 3f;
+
+        float offsetRandomX = Random.Range(0.3f, 0.57f);
+        float offsetRandomY = Random.Range(0.3f, 0.57f);
+        float offsetRandomZ = Random.Range(0.3f, 0.57f);
+
+        dropedBlock.transform.position = new(x - offsetRandomX, y + offsetRandomY, z + offsetRandomZ);
+
+        var entity = world.NewEntity();
+        var pool = world.GetPool<DropedComponent>();
+        pool.Add(entity);
+        ref var component = ref pool.Get(entity);
+        component.BlockID = id;
+        component.view = dropedBlock;
     }
 
 }

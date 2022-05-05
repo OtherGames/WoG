@@ -8,9 +8,11 @@ sealed class WorldGeneratorInit : IEcsInitSystem
 {
     [EcsInject]
     readonly World chuncksWorld;
+    [EcsWorld]
+    readonly EcsWorld ecsWorld = default;
 
 
-    public const int worldSize = 10;
+    public const int worldSize = 5;
     public const int size = 32;
     public const int noiseScale = 100;
     public const float TextureOffset = 1f / 16f;
@@ -18,9 +20,9 @@ sealed class WorldGeneratorInit : IEcsInitSystem
     Dictionary<BlockSide, List<Vector3>> blockVerticesSet;
     Dictionary<BlockSide, List<int>> blockTrianglesSet;
 
-    List<Vector3> vertices = new List<Vector3>();
-    List<int> triangulos = new List<int>();
-    List<Vector2> uvs = new List<Vector2>();
+    readonly List<Vector3> vertices = new();
+    readonly List<int> triangulos = new();
+    readonly List<Vector2> uvs = new();
 
 
     public void Init(EcsSystems systems)
@@ -64,8 +66,7 @@ sealed class WorldGeneratorInit : IEcsInitSystem
             {
                 for (int z = 0; z < size; z++)
                 {
-                    chunckComponent.blocks[x, y, z] = BlockExist(x + posX, y + posY, z + posZ);
-                    
+                    chunckComponent.blocks[x, y, z] = BlockExist(x + posX, y + posY, z + posZ);                    
                 }
             }
         }
@@ -87,10 +88,20 @@ sealed class WorldGeneratorInit : IEcsInitSystem
         chunckComponent.meshFilter = meshFilter;
         chunckComponent.collider = collider;
 
+        RaiseChunkInitEvent(chunckComponent);
+
         return chunckComponent;
-        //var xIdx = Mathf.FloorToInt(pos.x / VoxelData.ChunkWidth);
+        
     }
 
+    void RaiseChunkInitEvent(ChunckComponent chunck)
+    {
+        var e = ecsWorld.NewEntity();
+        var pool = ecsWorld.GetPool<ChunkInited>();
+        pool.Add(e);
+        ref var component = ref pool.Get(e);
+        component.chunck = chunck;
+    }
 
     Mesh GenerateMesh(ref ChunckComponent chunck, int posX, int posY, int posZ)
     {
@@ -105,7 +116,6 @@ sealed class WorldGeneratorInit : IEcsInitSystem
                 {
                     if (chunck.blocks[x, y, z] > 0)
                     {
-
                         BlockUVS b = new(0, 15, 3, 15, 2, 15);
 
                         if (x == 0 && z == 0)
@@ -310,7 +320,7 @@ sealed class WorldGeneratorInit : IEcsInitSystem
 
         int k = 10000;
 
-        Vector3 offset = new Vector3(Random.value * k, Random.value * k, Random.value * k);
+        Vector3 offset = new(Random.value * k, Random.value * k, Random.value * k);
         //offset = Vector3.zero;
         float noiseX = Mathf.Abs((float)(x + offset.x) / noiseScale);
         float noiseY = Mathf.Abs((float)(y + offset.y) / noiseScale);
@@ -421,9 +431,11 @@ public class BlockUVS
             case 7:
                 return new BlockUVS(4, 2);
             case 8:
-                return new BlockUVS(0, 6);
+                return new BlockUVS(4, 14);
             case 9:
                 return new BlockUVS(0, 2);
+            case 10:
+                return new BlockUVS(5, 12);
 
         }
 

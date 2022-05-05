@@ -8,15 +8,21 @@ using Client;
 sealed class WorldOfGodcraft : MonoBehaviour
 {
     public Material mat;
+    [SerializeField]
+    private Camera main;
 
     public EcsWorld EcsWorld { get; set; }
     EcsSystems systems;
 
     void Start()
     {
+        main.gameObject.SetActive(false);
+
         var meshGenerator = new MeshGenerator();
         meshGenerator.Init();
         Service<MeshGenerator>.Set(meshGenerator);
+
+        Service<DropedBlockGenerator>.Set(new());
 
         var world = new World();
         EcsWorld = new EcsWorld();
@@ -31,6 +37,12 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new WorldGeneratorInit())
             .Add(new WorldRaycastHitSystem())
             .Add(new NetworkChunckChangeSendSystem())
+            .Add(new WriteBlockSystem())
+            .Add(new PlantsGeneratorSystem())
+            .Add(new DropedLifetimeSystem())
+            .Add(new TakeDropedSystem())
+            .Add(new TakeBlockSystem())
+            //.Add(new TakeBlockSystem())
 
             // .Add (new TestSystem2 ())
 
@@ -41,8 +53,10 @@ sealed class WorldOfGodcraft : MonoBehaviour
             // .Add (new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem ("events"))
             .Add(new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem())
 #endif
-            .DelHere<ChunckHitEvent>()
+            //.DelHere<ChunckHitEvent>()
             .DelHere<NetworkChunckChanged>()
+            .DelHere<ChunkInited>()
+            .DelHere<BlockTaked>()
 
 
             .Inject(world)
