@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 1600
     height: 817
   m_ShowMode: 4
-  m_Title: Game
+  m_Title: Console
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -119,7 +119,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 200}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 0
-  controlID: 59
+  controlID: 103
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -197,7 +197,7 @@ MonoBehaviour:
   m_MinSize: {x: 200, y: 100}
   m_MaxSize: {x: 16192, y: 8096}
   vertical: 0
-  controlID: 38
+  controlID: 43
 --- !u!114 &9
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -330,8 +330,8 @@ MonoBehaviour:
     vZoomLockedByDefault: 0
     m_HBaseRangeMin: -614.5
     m_HBaseRangeMax: 614.5
-    m_VBaseRangeMin: -232
-    m_VBaseRangeMax: 232
+    m_VBaseRangeMin: -242.5
+    m_VBaseRangeMax: 242.5
     m_HAllowExceedBaseRangeMin: 1
     m_HAllowExceedBaseRangeMax: 1
     m_VAllowExceedBaseRangeMin: 1
@@ -348,11 +348,11 @@ MonoBehaviour:
     m_DrawArea:
       serializedVersion: 2
       x: 0
-      y: 21
+      y: 0
       width: 1229
-      height: 464
+      height: 485
     m_Scale: {x: 1, y: 1}
-    m_Translation: {x: 614.5, y: 232}
+    m_Translation: {x: 614.5, y: 242.5}
     m_MarginLeft: 0
     m_MarginRight: 0
     m_MarginTop: 0
@@ -360,9 +360,9 @@ MonoBehaviour:
     m_LastShownAreaInsideMargins:
       serializedVersion: 2
       x: -614.5
-      y: -232
+      y: -242.5
       width: 1229
-      height: 464
+      height: 485
     m_MinimalGUI: 1
   m_defaultScale: 1
   m_LastWindowPixelSize: {x: 1229, y: 485}
@@ -596,7 +596,7 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 82.28223, y: -12.368107, z: 279.25763}
+    m_Target: {x: -8.854155, y: 65.495, z: -68.99074}
     speed: 2
     m_Value: {x: 82.28223, y: -12.368107, z: 279.25763}
   m_RenderMode: 0
@@ -645,11 +645,11 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
-    m_Target: {x: -0.10216988, y: 0.56686306, z: -0.07111939, w: -0.8143528}
+    m_Target: {x: -0.11102442, y: 0.5354141, z: -0.07125668, w: -0.83422333}
     speed: 2
-    m_Value: {x: -0.10216983, y: 0.56686276, z: -0.07111935, w: -0.8143524}
+    m_Value: {x: -0.10216988, y: 0.56686306, z: -0.07111939, w: -0.81435287}
   m_Size:
-    m_Target: 126.62285
+    m_Target: 1.6760039
     speed: 2
     m_Value: 126.62285
   m_Ortho:
@@ -2024,7 +2024,7 @@ MonoBehaviour:
   m_Rotation:
     m_Target: {x: -0.16091393, y: -0.70859706, z: 0.1713863, w: -0.66529894}
     speed: 2
-    m_Value: {x: -0.160914, y: -0.7085974, z: 0.17138638, w: -0.66529924}
+    m_Value: {x: 0.16091391, y: 0.708597, z: -0.1713863, w: 0.6652989}
   m_Size:
     m_Target: 7.586129
     speed: 2
@@ -2094,22 +2094,22 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets
+    - Assets/Scripts/UI
     m_Globs: []
     m_OriginalText: 
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets
+  - Assets/Scripts/UI
   m_LastFoldersGridSize: -1
   m_LastProjectPath: E:\GAME DEVELOPMENT\Wars of Gods\World of Godcraft
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 79}
-    m_SelectedIDs: ec5f0000
-    m_LastClickedID: 24556
-    m_ExpandedIDs: 00000000de5f0000e05f0000e25f0000ec5f000000ca9a3bffffff7f
+    scrollPos: {x: 0, y: 100}
+    m_SelectedIDs: 3a620000
+    m_LastClickedID: 25146
+    m_ExpandedIDs: 00000000d0610000d2610000d4610000e661000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -2137,7 +2137,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000de5f0000e05f0000e25f0000
+    m_ExpandedIDs: 00000000d0610000d2610000d4610000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -2189,7 +2189,7 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
     m_NewAssetIndexInList: -1
-    m_ScrollPosition: {x: 0, y: 107}
+    m_ScrollPosition: {x: 0, y: 0}
     m_GridSize: 64
   m_SkipHiddenPackages: 0
   m_DirectoriesAreaWidth: 172

@@ -10,6 +10,8 @@ public class HUD : MonoBehaviour
     [SerializeField] Canvas canvasInventory;
     [SerializeField]
     Inventory inventory;
+    [SerializeField]
+    QuickInventory quickInventory;
 
     [SerializeField]
     private Image blockWriteMode;
@@ -22,6 +24,8 @@ public class HUD : MonoBehaviour
     {
         inventory.Init();
         inventory.Hide();
+
+        quickInventory.Init();
 
         group.SetActive(false);
 

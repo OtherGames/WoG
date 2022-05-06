@@ -46,7 +46,7 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
                 countHit = int.MaxValue;
             }
 
-            if (hitTimer > 0.1f)
+            if (hitTimer > 0.01f)
             {
                 countHit++;
                 hitTimer = 0;

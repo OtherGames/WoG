@@ -10,6 +10,9 @@ sealed class TakeBlockSystem : IEcsRunSystem
     [EcsFilter(typeof(InventoryItem))]
     readonly EcsFilter filterInventory = default;
 
+    [EcsFilter(typeof(InventoryItem), typeof(ItemQuickInventory))]
+    readonly EcsFilter filterQuickInventory = default;
+
     [EcsWorld]
     readonly EcsWorld world = default;
 
@@ -24,6 +27,20 @@ sealed class TakeBlockSystem : IEcsRunSystem
 
             bool isNewItem = true;
 
+            //foreach (var entityInventory in filterQuickInventory)
+            //{
+            //    var poolQuickInventory = world.GetPool<ItemQuickInventory>();
+            //    ref var itemQuick = ref poolInventory.Get(entityInventory);
+
+            //    if(itemQuick.blockID == component.blockID)
+            //    {
+            //        itemQuick.count++;
+            //        isNewItem = false;
+
+            //        Object.Destroy(itemQuick.view);
+            //    }
+            //}
+            
             foreach (var entityInventory in filterInventory)
             {
                 ref var itemInventory = ref poolInventory.Get(entityInventory);
@@ -38,14 +55,28 @@ sealed class TakeBlockSystem : IEcsRunSystem
 
             if (isNewItem)
             {
-                var e = world.NewEntity();
-                poolInventory.Add(e);
-                ref var item = ref poolInventory.Get(e);
-                item.itemType = ItemType.Block;
-                item.blockID = component.blockID;
-                item.view = component.view;
-                item.count++;
+                TakeAsNewItem(poolInventory, ref component);
             }
+
+            GlobalEvents.itemTaked?.Invoke();
+        }
+    }
+
+
+    void TakeAsNewItem(EcsPool<InventoryItem> pool, ref BlockTaked component)
+    {
+        var e = world.NewEntity();
+        pool.Add(e);
+        ref var item = ref pool.Get(e);
+        item.itemType = ItemType.Block;
+        item.blockID = component.blockID;
+        item.view = component.view;
+        item.count++;
+
+        if (filterQuickInventory.GetEntitiesCount() < 10)
+        {
+            var poolQuickInventory = world.GetPool<ItemQuickInventory>();
+            poolQuickInventory.Add(e);
         }
     }
 }

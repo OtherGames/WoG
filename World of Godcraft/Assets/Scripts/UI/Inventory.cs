@@ -22,7 +22,7 @@ public class Inventory : MonoBehaviour
     {
         ecsWorld = FindObjectOfType<WorldOfGodcraft>().EcsWorld;
 
-        filter = ecsWorld.Filter<InventoryItem>().End();
+        filter = ecsWorld.Filter<InventoryItem>().Exc<ItemQuickInventory>().End();
 
         for (int i = 0; i < size; i++)
         {
@@ -30,14 +30,17 @@ public class Inventory : MonoBehaviour
             cells.Add(cell);
             cell.labelCount.text = "";
         }
+
+        GlobalEvents.itemTaked.AddListener(Item_Taked);
     }
 
-    public void Show()
+    private void Item_Taked()
     {
-        IsShowed = true;
+        UpdateInventory();
+    }
 
-        gameObject.SetActive(true);
-
+    private void UpdateInventory()
+    {
         int idx = 0;
         foreach (var entity in filter)
         {
@@ -48,6 +51,15 @@ public class Inventory : MonoBehaviour
 
             idx++;
         }
+    }
+
+    public void Show()
+    {
+        IsShowed = true;
+
+        gameObject.SetActive(true);
+
+        UpdateInventory();
     }
 
     public void Hide()
@@ -65,15 +77,6 @@ public class Inventory : MonoBehaviour
             print(filter.GetEntitiesCount());
         }
 
-        if (IsShowed)
-        {
-            var filterTaked = ecsWorld.Filter<BlockTaked>().End();
-
-            if(filterTaked.GetEntitiesCount() > 0)
-            {
-                print("ìäý");
-                Show();
-            }
-        }
+        
     }
 }
