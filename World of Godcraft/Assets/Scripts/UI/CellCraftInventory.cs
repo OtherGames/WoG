@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using UnityEngine;
 using TMPro;
 
-public class CellQuickInventory : MonoBehaviour
+public class CellCraftInventory : MonoBehaviour
 {
     [SerializeField] Transform objectHolder;
     [SerializeField] public TMP_Text labelCount;
@@ -19,12 +19,5 @@ public class CellQuickInventory : MonoBehaviour
         item.view.layer = 5;
 
         labelCount.text = item.count > 1 ? $"x{item.count}" : "";
-    }
-
-    // HOT FIX
-    public void CheckCell()
-    {
-        if (objectHolder.childCount == 0)
-            labelCount.text = string.Empty;
     }
 }

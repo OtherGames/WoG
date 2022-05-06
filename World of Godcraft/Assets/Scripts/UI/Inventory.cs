@@ -10,6 +10,8 @@ public class Inventory : MonoBehaviour
     [SerializeField] CellInventory cellPrefab;
     [SerializeField] Transform parent;
 
+    [SerializeField] CraftInventory craftInventory;
+
     public bool IsShowed { get; set; }
 
     List<CellInventory> cells = new();

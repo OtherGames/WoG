@@ -40,5 +40,10 @@ public class QuickInventory : MonoBehaviour
 
             idx++;
         }
+
+        foreach (var item in cells)
+        {
+            item.CheckCell();
+        }
     }
 }
