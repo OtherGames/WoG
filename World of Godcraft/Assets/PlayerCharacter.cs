@@ -7,6 +7,7 @@ using PlayFab.ClientModels;
 using Photon.Pun;
 using UnityStandardAssets.Characters.FirstPerson;
 using System;
+using Leopotam.EcsLite;
 
 public class PlayerCharacter : MonoBehaviour
 {
@@ -22,6 +23,8 @@ public class PlayerCharacter : MonoBehaviour
     WorldOfGodcraft godcraft;
 
     new PhotonView networkView;
+    EcsFilter filter;
+    EcsWorld ecsWorld;
 
     internal Action<Entity, ChunckHitEvent> onChunkHit;
 
@@ -44,6 +47,9 @@ public class PlayerCharacter : MonoBehaviour
 
         highlight = Instantiate(highlightPrefab);
         godcraft = FindObjectOfType<WorldOfGodcraft>();
+        ecsWorld = godcraft.EcsWorld;
+
+        filter = ecsWorld.Filter<InventoryItem>().Inc<ItemQuickInventory>().End();
     }
 
     // Update is called once per frame
@@ -101,16 +107,32 @@ public class PlayerCharacter : MonoBehaviour
 
             if (Input.GetMouseButtonDown(1))
             {
-                var e = godcraft.EcsWorld.NewEntity();
+                int idx = 0;
+                foreach (var entity in filter)
+                {
+                    if (idx == InputHandler.Instance.quickSlotID - 1)
+                    {
+                        var poolItems = ecsWorld.GetPool<InventoryItem>();
+                        ref var item = ref poolItems.Get(entity);
 
-                var pool = godcraft.EcsWorld.GetPool<ChunckHitEvent>();
-                pool.Add(e);
-                ref var component = ref pool.Get(e);
-                component.collider = hit.collider;
-                component.position = blockPosition + hit.normal;
-                component.blockId = InputHandler.Instance.blockID;
+                        if (item.itemType == ItemType.Block)
+                        {
+                            var e = godcraft.EcsWorld.NewEntity();
 
-                onChunkHit?.Invoke(new Entity { id = e }, component);
+                            var pool = godcraft.EcsWorld.GetPool<ChunckHitEvent>();
+                            pool.Add(e);
+                            ref var component = ref pool.Get(e);
+                            component.collider = hit.collider;
+                            component.position = blockPosition + hit.normal;
+                            component.blockId = item.blockID;
+
+                            onChunkHit?.Invoke(new Entity { id = e }, component);
+                        }
+
+                        break;
+                    }
+                    idx++;
+                }
             }
 
         }
@@ -119,6 +141,7 @@ public class PlayerCharacter : MonoBehaviour
             highlight.position = default;
         }
     }
+
 
     void SaveController()
     {

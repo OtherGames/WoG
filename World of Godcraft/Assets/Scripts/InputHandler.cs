@@ -6,7 +6,7 @@ public class InputHandler : MonoBehaviour
 {
     public static InputHandler Instance { get; private set; }
 
-    public byte blockID = 1;
+    public byte quickSlotID = 1;
 
 
     private void Awake()
@@ -18,52 +18,52 @@ public class InputHandler : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            blockID = 1;
+            quickSlotID = 1;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            blockID = 2;
+            quickSlotID = 2;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
-            blockID = 3;
+            quickSlotID = 3;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
-            blockID = 4;
+            quickSlotID = 4;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha5))
         {
-            blockID = 5;
+            quickSlotID = 5;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha6))
         {
-            blockID = 6;
+            quickSlotID = 6;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha7))
         {
-            blockID = 7;
+            quickSlotID = 7;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha8))
         {
-            blockID = 8;
+            quickSlotID = 8;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha9))
         {
-            blockID = 9;
+            quickSlotID = 9;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha0))
         {
-            blockID = 10;
+            quickSlotID = 10;
         }
 
         if(Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.I))

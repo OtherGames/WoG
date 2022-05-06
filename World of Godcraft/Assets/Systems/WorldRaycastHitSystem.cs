@@ -43,7 +43,7 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
 
             if(hitComponent.blockId > 0)
             {
-                countHit = int.MaxValue;
+                countHit = 888;
             }
 
             if (hitTimer > 0.01f)
