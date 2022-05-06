@@ -22,6 +22,7 @@ public class QuickInventory : MonoBehaviour
         }
 
         GlobalEvents.itemTaked.AddListener(UpdateItems);
+        GlobalEvents.itemUsing.AddListener(UpdateItems);
 
         UpdateItems();
     }

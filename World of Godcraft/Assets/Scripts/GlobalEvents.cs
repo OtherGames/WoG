@@ -12,4 +12,10 @@ public class GlobalEvents
 
     //-----------------------------------------------------------------------
 
+    public class ItemRemoved : UnityEvent { }
+
+    public static ItemRemoved itemUsing = new();
+
+    //-----------------------------------------------------------------------
+
 }

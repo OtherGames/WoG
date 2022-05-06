@@ -127,6 +127,28 @@ public class PlayerCharacter : MonoBehaviour
                             component.blockId = item.blockID;
 
                             onChunkHit?.Invoke(new Entity { id = e }, component);
+                           
+                            // HOT FIX вынести в отдельную систему
+                            item.count--;
+                            if(item.count == 0)
+                            {
+                                Destroy(item.view);
+                                ecsWorld.DelEntity(entity);
+                                
+                                //ecsWorld.GetPool<ItemQuickInventory>().Del(entity);
+                                //poolItems.Del(entity);
+                            }
+
+                            StartCoroutine(Delay());
+
+                            IEnumerator Delay()
+                            {
+                                yield return null;
+
+                                GlobalEvents.itemUsing?.Invoke();
+                            }
+                            //-----------------------------------
+
                         }
 
                         break;
