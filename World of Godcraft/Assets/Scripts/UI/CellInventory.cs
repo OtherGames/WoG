@@ -1,13 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using UnityEngine;
 using TMPro;
 
-public class CellInventory : MonoBehaviour
+public class CellInventory : MonoBehaviour, IPointerDownHandler
 {
     [SerializeField] Transform objectHolder;
     [SerializeField] public TMP_Text labelCount;
+
+    public bool IsItem { get; set; }
 
     internal void Init(ref InventoryItem item)
     {
@@ -19,5 +21,10 @@ public class CellInventory : MonoBehaviour
         item.view.layer = 5;
 
         labelCount.text = item.count > 1 ? $"x{item.count}" : "";
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+
     }
 }

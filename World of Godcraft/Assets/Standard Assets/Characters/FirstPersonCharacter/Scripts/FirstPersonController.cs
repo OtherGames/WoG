@@ -42,6 +42,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private bool m_Jumping;
         private AudioSource m_AudioSource;
 
+        public MouseLook MouseLook => m_MouseLook;
+
         Photon.Pun.PhotonView networkView;
 
         // Use this for initialization

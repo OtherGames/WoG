@@ -2,10 +2,14 @@ using Leopotam.EcsLite;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+using System;
 
 public class QuickInventory : MonoBehaviour
 {
     [SerializeField] List<CellQuickInventory> cells;
+
+    public Action<int> onItemClicked;
 
     EcsFilter filter;
     EcsWorld ecsWorld;
@@ -16,15 +20,41 @@ public class QuickInventory : MonoBehaviour
 
         filter = ecsWorld.Filter<InventoryItem>().Inc<ItemQuickInventory>().End();
 
-        foreach (var item in cells)
+        foreach (var cell in cells)
         {
-            item.labelCount.text = "";
+            cell.labelCount.text = "";
+            cell.onItemClick += Item_Clicked;
         }
 
         GlobalEvents.itemTaked.AddListener(UpdateItems);
-        GlobalEvents.itemUsing.AddListener(UpdateItems);
+        GlobalEvents.itemUsing.AddListener(Item_Using);
 
         UpdateItems();
+    }
+
+    private void Item_Clicked(int entity)
+    {
+        onItemClicked?.Invoke(entity);
+    }
+
+    private void Item_Using(int entity)
+    {
+        UpdateItems();
+        CheckEmptyCell();
+    }
+
+    private void CheckEmptyCell()
+    {
+        List<CellQuickInventory> withItems = new();
+
+        foreach (var e in filter)
+        {
+            var cell = cells.Find(c => c.EntityItem != null && c.EntityItem == e);
+            withItems.Add(cell);
+        }
+
+        var forCheck = cells.Except(withItems).ToList();
+        forCheck.ForEach(c => c.Clear());
     }
 
     public void UpdateItems()
@@ -36,14 +66,11 @@ public class QuickInventory : MonoBehaviour
             var pool = ecsWorld.GetPool<InventoryItem>();
             ref var component = ref pool.Get(entity);
 
-            cells[idx].Init(ref component);
+            cells[idx].Init(entity, ref component);
 
             idx++;
         }
 
-        foreach (var item in cells)
-        {
-            item.CheckCell();
-        }
+        
     }
 }

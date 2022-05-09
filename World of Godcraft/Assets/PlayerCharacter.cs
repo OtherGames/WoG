@@ -25,6 +25,7 @@ public class PlayerCharacter : MonoBehaviour
     new PhotonView networkView;
     EcsFilter filter;
     EcsWorld ecsWorld;
+    HUD hud;
 
     internal Action<Entity, ChunckHitEvent> onChunkHit;
 
@@ -45,6 +46,8 @@ public class PlayerCharacter : MonoBehaviour
             Destroy(GetComponent<AudioSource>());
         }
 
+        hud = FindObjectOfType<HUD>();
+
         highlight = Instantiate(highlightPrefab);
         godcraft = FindObjectOfType<WorldOfGodcraft>();
         ecsWorld = godcraft.EcsWorld;
@@ -61,6 +64,9 @@ public class PlayerCharacter : MonoBehaviour
 
     void BlockController()
     {
+        if (hud.InventoryShowed)
+            return;
+
         if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out RaycastHit hit, 7f, lm))
         {
             Vector3 normalPos = hit.point - (hit.normal / 2);
@@ -130,11 +136,11 @@ public class PlayerCharacter : MonoBehaviour
                            
                             // HOT FIX вынести в отдельную систему
                             item.count--;
-                            if(item.count == 0)
+                            if (item.count == 0)
                             {
                                 Destroy(item.view);
                                 ecsWorld.DelEntity(entity);
-                                
+
                                 //ecsWorld.GetPool<ItemQuickInventory>().Del(entity);
                                 //poolItems.Del(entity);
                             }
@@ -145,7 +151,7 @@ public class PlayerCharacter : MonoBehaviour
                             {
                                 yield return null;
 
-                                GlobalEvents.itemUsing?.Invoke();
+                                GlobalEvents.itemUsing?.Invoke(entity);
                             }
                             //-----------------------------------
 

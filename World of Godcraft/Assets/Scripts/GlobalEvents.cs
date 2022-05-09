@@ -12,7 +12,7 @@ public class GlobalEvents
 
     //-----------------------------------------------------------------------
 
-    public class ItemRemoved : UnityEvent { }
+    public class ItemRemoved : UnityEvent<int> { }
 
     public static ItemRemoved itemUsing = new();
 

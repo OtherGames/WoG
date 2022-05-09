@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
+using UnityStandardAssets.Characters.FirstPerson;
+using System;
 
 public class HUD : MonoBehaviour
 {
@@ -19,6 +21,9 @@ public class HUD : MonoBehaviour
     private Color redColorMode;
 
     public static bool WriteMode { get; set; }
+    public bool InventoryShowed => inventory.IsShowed;
+
+    PlayerCharacter player;
 
     private IEnumerator Start()
     {
@@ -26,6 +31,8 @@ public class HUD : MonoBehaviour
         inventory.Hide();
 
         quickInventory.Init();
+
+        quickInventory.onItemClicked += Item_Clicked;
 
         group.SetActive(false);
 
@@ -42,7 +49,12 @@ public class HUD : MonoBehaviour
         group.SetActive(true);
 
         // HOT FIX
-        canvasInventory.worldCamera = FindObjectOfType<PlayerCharacter>().uiCamera;
+        //canvasInventory.worldCamera = FindObjectOfType<PlayerCharacter>().uiCamera;
+    }
+
+    private void Item_Clicked(int entity)
+    {
+        inventory.ItemClicked(entity);
     }
 
     private void Update()
@@ -56,14 +68,22 @@ public class HUD : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.I))
         {
+            if (!player)
+                player = FindObjectOfType<PlayerCharacter>();
+
             if (inventory.IsShowed)
             {
                 inventory.Hide();
+                player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(true);
             }
             else
             {
                 inventory.Show();
+                player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(false);
             }
         }
+
+        inventory.ScreenScale = transform.lossyScale.x;
+
     }
 }

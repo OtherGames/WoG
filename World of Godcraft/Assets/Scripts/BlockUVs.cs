@@ -61,12 +61,14 @@ public class BlockUVS
                 return new BlockUVS(1, 3);
             case 7:
                 return new BlockUVS(4, 2);
-            case 8:
+            case 8:// Бревно
                 return new BlockUVS(4, 14);
             case 9:
                 return new BlockUVS(0, 2);
             case 10:
                 return new BlockUVS(5, 12);
+            case 100:
+                return new BlockUVS(15, 0);
 
         }
 

@@ -1,16 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using UnityEngine;
+using System;
 using TMPro;
 
-public class CellQuickInventory : MonoBehaviour
+public class CellQuickInventory : MonoBehaviour, IPointerDownHandler
 {
     [SerializeField] Transform objectHolder;
     [SerializeField] public TMP_Text labelCount;
 
-    internal void Init(ref InventoryItem item)
+    public bool IsItem { get; set; }
+    public int? EntityItem { get; set; }
+
+    public Action<int> onItemClick;
+
+    internal void Init(int entity, ref InventoryItem item)
     {
+        EntityItem = entity;
+        IsItem = true;
+
         item.view.transform.SetParent(objectHolder, false);
         item.view.transform.localPosition = Vector3.zero;
         item.view.transform.localRotation = Quaternion.identity;
@@ -21,10 +30,19 @@ public class CellQuickInventory : MonoBehaviour
         labelCount.text = item.count > 1 ? $"x{item.count}" : "";
     }
 
-    // HOT FIX
-    public void CheckCell()
+    
+    public void Clear()
     {
-        if (objectHolder.childCount == 0)
-            labelCount.text = string.Empty;
+        labelCount.text = string.Empty;
+        EntityItem = null;
+        IsItem = false;
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if(EntityItem != null)
+        {
+            onItemClick?.Invoke(EntityItem.Value);
+        }
     }
 }
