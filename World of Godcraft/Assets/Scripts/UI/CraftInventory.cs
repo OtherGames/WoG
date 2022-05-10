@@ -1,15 +1,17 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Leopotam.EcsLite;
 using LeopotamGroup.Globals;
 using System.Linq;
+using System;
 
 public class CraftInventory : MonoBehaviour
 {
     [SerializeField] List<CellCraftInventory> cells;
-    [SerializeField] CellCraftInventory cellResult;
+    [SerializeField] CellInventory cellResult;
+
+    public Action<int> OnItemClicked;
 
     EcsFilter filter;
     EcsWorld ecsWorld;
@@ -22,6 +24,28 @@ public class CraftInventory : MonoBehaviour
         foreach (var cell in cells)
         {
             cell.OnItemSeted += CraftItem_Seted;
+        }
+        cellResult.onItemClick += CraftResult_Clicked;
+    }
+
+    private void CraftResult_Clicked(int entity)
+    {
+        RemoveUsedItem();
+        OnItemClicked?.Invoke(entity);
+    }
+
+    // TODO
+    private void RemoveUsedItem()
+    {
+        foreach (var c in cells)
+        {
+            if(c.EntityItem != null)
+            {
+                Destroy(ecsWorld.GetPool<InventoryItem>().Get(c.EntityItem.Value).view);
+
+                ecsWorld.DelEntity(c.EntityItem.Value);
+                c.Clear();
+            }
         }
     }
 
@@ -50,7 +74,7 @@ public class CraftInventory : MonoBehaviour
             }
         }
 
-        byte?[] key = null;
+        byte?[] craftableSet = null;
         foreach (var item in craft.sets)
         {
             if (item.Key.Count() == set.Count)
@@ -68,14 +92,14 @@ public class CraftInventory : MonoBehaviour
 
                 if (isMatched)
                 {
-                    key = item.Key;
+                    craftableSet = item.Key;
                 }
             }
         }
 
-        if (key != null)
+        if (craftableSet != null)
         {
-            var result = craft.sets[key];
+            var result = craft.sets[craftableSet];
 
             var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
             var dropedBlock = new GameObject("Droped Block");
@@ -94,7 +118,15 @@ public class CraftInventory : MonoBehaviour
             component.count = 1;
             component.itemType = ItemType.Block;
 
-            cellResult.Init(ref component);
+            cellResult.Init(entity, ref component);
+        }
+    }
+
+    public void CheckCellFotClear(int entity)
+    {
+        if(cellResult.EntityItem == entity)
+        {
+            cellResult.Clear();
         }
     }
 

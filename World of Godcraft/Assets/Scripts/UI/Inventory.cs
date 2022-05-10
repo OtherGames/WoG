@@ -11,6 +11,7 @@ public class Inventory : MonoBehaviour
     [SerializeField] Transform parent;
 
     [SerializeField] CraftInventory craftInventory;
+    [SerializeField] QuickInventory quickInventory;
 
     public bool IsShowed { get; set; }
     public float ScreenScale { get; set; }
@@ -38,9 +39,12 @@ public class Inventory : MonoBehaviour
         }
 
         craftInventory.Init();
+        craftInventory.OnItemClicked += ItemOnCraft_Clicked;
 
         GlobalEvents.itemTaked.AddListener(Item_Taked);
     }
+
+   
 
     private void Item_Taked()
     {
@@ -55,7 +59,7 @@ public class Inventory : MonoBehaviour
             var pool = ecsWorld.GetPool<InventoryItem>();
             ref var component = ref pool.Get(entity);
 
-            cells[idx].Init(ref component);
+            cells[idx].Init(entity, ref component);
 
             idx++;
         }
@@ -79,19 +83,54 @@ public class Inventory : MonoBehaviour
 
     public void ItemClicked(int entity)
     {
+        CreateDragItem(entity);
+    }
+
+    private void ItemOnCraft_Clicked(int entity)
+    {
+        CreateDragItem(entity);
+    }
+
+    private void CreateDragItem(int entity)
+    {
         foreach (var e in filterItems)
         {
             if (e == entity)
             {
                 ref var component = ref ecsWorld.GetPool<InventoryItem>().Get(e);
                 dragItem = new() { entity = e, view = component.view };
-                
-                //print(Input.mousePosition.x);
-                //print(transform.lossyScale.x);
-                //print((float)Screen.width/(float)Screen.height);
-                //print(Screen.width);
             }
         }
+    }
+
+    private void ItemDragStop()
+    {
+        print("Item Droped");
+        var cell = craftInventory.GetEnteredCell();
+
+        if (cell)
+        {
+            cell.SetItem(dragItem);
+            dragItem = null;
+        }
+        else
+        {
+            var c = quickInventory.GetEnteredCell();
+            if (c)
+            {
+                c.SetItem(dragItem);
+                dragItem = null;
+            }
+        }
+        
+    }
+
+    private void ClearStartDragCell()
+    {
+        var cell = quickInventory.Cells.Find(c => c.EntityItem == dragItem.entity);
+        cell?.Clear();
+
+        craftInventory.CheckCellFotClear(dragItem.entity);
     }
     
     private void Update()
@@ -108,13 +147,8 @@ public class Inventory : MonoBehaviour
 
             if (Input.GetMouseButtonUp(0))
             {
-                var cell = craftInventory.GetEnteredCell();
-
-                if (cell)
-                {
-                    cell.SetItem(dragItem);
-                    dragItem = null;
-                }
+                ClearStartDragCell();
+                ItemDragStop();
             }
         }
 

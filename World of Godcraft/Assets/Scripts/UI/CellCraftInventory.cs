@@ -27,6 +27,13 @@ public class CellCraftInventory : MonoBehaviour, IPointerEnterHandler, IPointerE
         labelCount.text = item.count > 1 ? $"x{item.count}" : "";
     }
 
+    public void Clear()
+    {
+        objectHolder.localPosition = new(0, 0, objectHolder.localPosition.z);
+        labelCount.text = string.Empty;
+        EntityItem = null;
+    }
+
     public void SetItem(DragItem dragItem)
     {
         EntityItem = dragItem.entity;

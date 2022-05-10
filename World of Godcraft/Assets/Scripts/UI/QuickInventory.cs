@@ -7,7 +7,9 @@ using System;
 
 public class QuickInventory : MonoBehaviour
 {
-    [SerializeField] List<CellQuickInventory> cells;
+    [SerializeField] List<CellInventory> cells;
+
+    public List<CellInventory> Cells => cells;
 
     public Action<int> onItemClicked;
 
@@ -24,12 +26,21 @@ public class QuickInventory : MonoBehaviour
         {
             cell.labelCount.text = "";
             cell.onItemClick += Item_Clicked;
+            cell.OnItemSeted += Item_Seted;
         }
 
         GlobalEvents.itemTaked.AddListener(UpdateItems);
         GlobalEvents.itemUsing.AddListener(Item_Using);
 
         UpdateItems();
+    }
+
+    private void Item_Seted(CellInventory cell)
+    {
+        ecsWorld.GetPool<ItemQuickInventory>().Add(cell.EntityItem.Value);
+
+        UpdateItems();
+        CheckEmptyCell();
     }
 
     private void Item_Clicked(int entity)
@@ -45,7 +56,7 @@ public class QuickInventory : MonoBehaviour
 
     private void CheckEmptyCell()
     {
-        List<CellQuickInventory> withItems = new();
+        List<CellInventory> withItems = new();
 
         foreach (var e in filter)
         {
@@ -70,7 +81,10 @@ public class QuickInventory : MonoBehaviour
 
             idx++;
         }
+    }
 
-        
+    public CellInventory GetEnteredCell()
+    {
+        return cells.Find(c => c.IsPointerEntered);
     }
 }
