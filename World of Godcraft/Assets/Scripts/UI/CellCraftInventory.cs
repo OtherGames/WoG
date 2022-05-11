@@ -10,13 +10,15 @@ public class CellCraftInventory : MonoBehaviour, IPointerEnterHandler, IPointerE
     [SerializeField] Transform objectHolder;
     [SerializeField] public TMP_Text labelCount;
 
-    public Action<CellCraftInventory> OnItemSeted;
+    public Action OnItemSeted;
 
     public int? EntityItem { get; set; }
     public bool IsPointerEntered { get; set; }
 
-    internal void Init(ref InventoryItem item)
+    internal void Init(int entity, ref InventoryItem item)
     {
+        EntityItem = entity;
+
         item.view.transform.SetParent(objectHolder, false);
         item.view.transform.localPosition = Vector3.zero;
         item.view.transform.localRotation = Quaternion.identity;
@@ -27,11 +29,9 @@ public class CellCraftInventory : MonoBehaviour, IPointerEnterHandler, IPointerE
         labelCount.text = item.count > 1 ? $"x{item.count}" : "";
     }
 
-    public void Clear()
+    internal void UpdateItem(ref InventoryItem item)
     {
-        objectHolder.localPosition = new(0, 0, objectHolder.localPosition.z);
-        labelCount.text = string.Empty;
-        EntityItem = null;
+        labelCount.text = item.count > 1 ? $"x{item.count}" : "";
     }
 
     public void SetItem(DragItem dragItem)
@@ -40,9 +40,17 @@ public class CellCraftInventory : MonoBehaviour, IPointerEnterHandler, IPointerE
 
         dragItem.view.transform.SetParent(objectHolder, false);
         dragItem.view.transform.localPosition = Vector3.zero;
-        //dragItem.view.transform.localRotation = Quaternion.identity;
 
-        OnItemSeted?.Invoke(this);
+        labelCount.text = dragItem.count > 1 ? $"x{dragItem.count}" : "";
+
+        OnItemSeted?.Invoke();
+    }
+
+    public void Clear()
+    {
+        objectHolder.localPosition = new(0, 0, objectHolder.localPosition.z);
+        labelCount.text = string.Empty;
+        EntityItem = null;
     }
 
     public void OnPointerEnter(PointerEventData eventData)

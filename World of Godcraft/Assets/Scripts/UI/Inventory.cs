@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
+using System.Linq;
 using TMPro;
 using Leopotam.EcsLite;
 
@@ -16,7 +17,7 @@ public class Inventory : MonoBehaviour
     public bool IsShowed { get; set; }
     public float ScreenScale { get; set; }
 
-    List<CellInventory> cells = new();
+    readonly List<CellInventory> cells = new();
     DragItem dragItem;
     EcsFilter filterItems;
     EcsFilter filter;
@@ -98,7 +99,7 @@ public class Inventory : MonoBehaviour
             if (e == entity)
             {
                 ref var component = ref ecsWorld.GetPool<InventoryItem>().Get(e);
-                dragItem = new() { entity = e, view = component.view };
+                dragItem = new() { entity = e, view = component.view, count = component.count };
             }
         }
     }
@@ -115,22 +116,95 @@ public class Inventory : MonoBehaviour
         }
         else
         {
-            var c = quickInventory.GetEnteredCell();
-            if (c)
+            var cellInventory = quickInventory.GetEnteredCell();
+            if (cellInventory)
             {
-                c.SetItem(dragItem);
+                quickInventory.SetItem(dragItem, cellInventory);
                 dragItem = null;
             }
+            else
+            {
+                cellInventory = cells.Find(c => c.IsPointerEntered);
+                if (cellInventory)
+                {
+                    SetItem(cellInventory);
+                }
+            }
         }
-        
+    }
+
+    private void SetItem(CellInventory cell)
+    {
+        bool found = false;
+        ref var dragComponent = ref ecsWorld.GetPool<InventoryItem>().Get(dragItem.entity);
+
+        foreach (var entity in filter)
+        {
+            ref var component = ref ecsWorld.GetPool<InventoryItem>().Get(entity);
+
+            if (component.blockID == dragComponent.blockID)
+            {
+                found = true;
+
+                component.count += dragComponent.count;
+                Destroy(dragItem.view);
+                ecsWorld.DelEntity(dragItem.entity);
+
+                UpdateItems();
+                CheckEmptyCell();
+            }
+        }
+
+        if (!found)
+        {
+            cell.SetItem(dragItem);
+        }
+    }
+
+    public void UpdateItems()
+    {
+        int idx = 0;
+
+        foreach (var entity in filter)
+        {
+            var pool = ecsWorld.GetPool<InventoryItem>();
+            ref var component = ref pool.Get(entity);
+
+            cells[idx].Init(entity, ref component);
+
+            idx++;
+        }
+    }
+
+    private void CheckEmptyCell()
+    {
+        List<CellInventory> withItems = new();
+
+        foreach (var e in filter)
+        {
+            var cell = cells.Find(c => c.EntityItem != null && c.EntityItem == e);
+            withItems.Add(cell);
+        }
+
+        var forCheck = cells.Except(withItems).ToList();
+        forCheck.ForEach(c => c.Clear());
     }
 
     private void ClearStartDragCell()
     {
         var cell = quickInventory.Cells.Find(c => c.EntityItem == dragItem.entity);
-        cell?.Clear();
+        if(cell != null)
+        {
+            ecsWorld.GetPool<ItemQuickInventory>().Del(cell.EntityItem.Value);
+            cell.Clear();
+        }
 
-        craftInventory.CheckCellFotClear(dragItem.entity);
+        craftInventory.CheckCellForClear(dragItem.entity);
+    }
+
+    private void CheckCraftableCells()
+    {
+        
     }
     
     private void Update()
@@ -165,4 +239,5 @@ public class DragItem
 {
     public GameObject view;
     public int entity;
+    public int count;
 }

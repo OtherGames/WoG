@@ -54,6 +54,34 @@ public class QuickInventory : MonoBehaviour
         CheckEmptyCell();
     }
 
+    public void SetItem(DragItem dragItem, CellInventory cell)
+    {
+        bool found = false;
+        ref var dragComponent = ref ecsWorld.GetPool<InventoryItem>().Get(dragItem.entity);
+
+        foreach (var entity in filter)
+        {
+            ref var component = ref ecsWorld.GetPool<InventoryItem>().Get(entity);
+
+            if (component.blockID == dragComponent.blockID)
+            {
+                found = true;
+
+                component.count += dragComponent.count;
+                Destroy(dragItem.view);
+                ecsWorld.DelEntity(dragItem.entity);
+
+                UpdateItems();
+                CheckEmptyCell();
+            }
+        }
+
+        if (!found)
+        {
+            cell.SetItem(dragItem);
+        }
+    }
+
     private void CheckEmptyCell()
     {
         List<CellInventory> withItems = new();

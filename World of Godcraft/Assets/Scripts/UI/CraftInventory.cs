@@ -41,38 +41,36 @@ public class CraftInventory : MonoBehaviour
         {
             if(c.EntityItem != null)
             {
-                Destroy(ecsWorld.GetPool<InventoryItem>().Get(c.EntityItem.Value).view);
+                ref var component = ref ecsWorld.GetPool<InventoryItem>().Get(c.EntityItem.Value);
+                component.count--;
+                if (component.count == 0)
+                {
+                    Destroy(component.view);
 
-                ecsWorld.DelEntity(c.EntityItem.Value);
-                c.Clear();
+                    ecsWorld.DelEntity(c.EntityItem.Value);
+                    c.Clear();
+                }
+                else
+                {
+                    c.UpdateItem(ref component);
+                }
             }
         }
     }
 
-    private void CraftItem_Seted(CellCraftInventory cell)
+    private void CraftItem_Seted()
+    {
+        AddCraftItemTag();
+        Crafting();
+    }
+
+    private void Crafting()
     {
         var craftable = cells.FindAll(c => c.EntityItem != null);
 
         var craft = Service<Craft>.Get();
 
-        List<byte?> set = new();
-        for (int i = 0; i < cells.Count; i++)
-        {
-            if(cells[i].EntityItem == null)
-            {
-                set.Add(null);
-            }
-            else
-            {
-                foreach (var e in filter)
-                {
-                    if (e == cells[i].EntityItem)
-                    {
-                        set.Add(ecsWorld.GetPool<InventoryItem>().Get(e).blockID);
-                    }
-                }
-            }
-        }
+        List<byte?> set = GetCraftSet();
 
         byte?[] craftableSet = null;
         foreach (var item in craft.sets)
@@ -104,7 +102,7 @@ public class CraftInventory : MonoBehaviour
             var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
             var dropedBlock = new GameObject("Droped Block");
             dropedBlock.AddComponent<MeshRenderer>().material = FindObjectOfType<WorldOfGodcraft>().mat;
-            dropedBlock.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMesh(result);
+            dropedBlock.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMesh(result.Item1);
             dropedBlock.AddComponent<DropedBlock>();
             dropedBlock.transform.localScale /= 3f;
             dropedBlock.layer = 5;
@@ -113,21 +111,52 @@ public class CraftInventory : MonoBehaviour
             var pool = ecsWorld.GetPool<InventoryItem>();
             pool.Add(entity);
             ref var component = ref pool.Get(entity);
-            component.blockID = result;
+            component.blockID = result.Item1;
             component.view = dropedBlock;
-            component.count = 1;
+            component.count = result.Item2;
             component.itemType = ItemType.Block;
 
             cellResult.Init(entity, ref component);
         }
     }
 
-    public void CheckCellFotClear(int entity)
+    private List<byte?> GetCraftSet()
+    {
+        List<byte?> set = new();
+        for (int i = 0; i < cells.Count; i++)
+        {
+            if (cells[i].EntityItem == null)
+            {
+                set.Add(null);
+            }
+            else
+            {
+                foreach (var e in filter)
+                {
+                    if (e == cells[i].EntityItem)
+                    {
+                        set.Add(ecsWorld.GetPool<InventoryItem>().Get(e).blockID);
+                    }
+                }
+            }
+        }
+
+        return set;
+    }
+
+    private void AddCraftItemTag()
+    {
+
+    }
+
+    public void CheckCellForClear(int entity)
     {
         if(cellResult.EntityItem == entity)
         {
             cellResult.Clear();
         }
+
+        CraftItem_Seted();
     }
 
     public CellCraftInventory GetEnteredCell()
