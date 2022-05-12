@@ -60,6 +60,9 @@ public class Inventory : MonoBehaviour
             if (dragItem != null && dragItem.entity == entity)
                 continue;
 
+            if (craftInventory.CellResult.EntityItem == entity)
+                continue;
+
             var pool = ecsWorld.GetPool<InventoryItem>();
             ref var component = ref pool.Get(entity);
 
@@ -157,14 +160,26 @@ public class Inventory : MonoBehaviour
                 Destroy(dragItem.view);
                 ecsWorld.DelEntity(dragItem.entity);
                 
-                UpdateInventory();
-                CheckEmptyCell();
             }
         }
 
         if (!found)
         {
             cell.SetItem(dragItem);
+        }
+
+        UpdateInventory();
+        CheckEmptyCell();
+
+        StartCoroutine(Delay());
+
+        // HOT FIX
+        IEnumerator Delay()
+        {
+            yield return null;
+
+            UpdateInventory();
+            CheckEmptyCell();
         }
     }
 
