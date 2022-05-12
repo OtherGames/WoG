@@ -29,7 +29,7 @@ public class Inventory : MonoBehaviour
     {
         ecsWorld = FindObjectOfType<WorldOfGodcraft>().EcsWorld;
 
-        filter = ecsWorld.Filter<InventoryItem>().Exc<ItemQuickInventory>().End();
+        filter = ecsWorld.Filter<InventoryItem>().Exc<ItemQuickInventory>().Exc<ItemCraftInventory>().End();
         filterItems = ecsWorld.Filter<InventoryItem>().End();
 
         for (int i = 0; i < size; i++)
@@ -57,6 +57,9 @@ public class Inventory : MonoBehaviour
         int idx = 0;
         foreach (var entity in filter)
         {
+            if (dragItem != null && dragItem.entity == entity)
+                continue;
+
             var pool = ecsWorld.GetPool<InventoryItem>();
             ref var component = ref pool.Get(entity);
 
@@ -128,6 +131,7 @@ public class Inventory : MonoBehaviour
                 if (cellInventory)
                 {
                     SetItem(cellInventory);
+                    dragItem = null;
                 }
             }
         }
@@ -137,9 +141,12 @@ public class Inventory : MonoBehaviour
     {
         bool found = false;
         ref var dragComponent = ref ecsWorld.GetPool<InventoryItem>().Get(dragItem.entity);
-
+        
         foreach (var entity in filter)
         {
+            if (dragItem.entity == entity)
+                continue;
+
             ref var component = ref ecsWorld.GetPool<InventoryItem>().Get(entity);
 
             if (component.blockID == dragComponent.blockID)
@@ -149,8 +156,8 @@ public class Inventory : MonoBehaviour
                 component.count += dragComponent.count;
                 Destroy(dragItem.view);
                 ecsWorld.DelEntity(dragItem.entity);
-
-                UpdateItems();
+                
+                UpdateInventory();
                 CheckEmptyCell();
             }
         }
@@ -161,20 +168,6 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    public void UpdateItems()
-    {
-        int idx = 0;
-
-        foreach (var entity in filter)
-        {
-            var pool = ecsWorld.GetPool<InventoryItem>();
-            ref var component = ref pool.Get(entity);
-
-            cells[idx].Init(entity, ref component);
-
-            idx++;
-        }
-    }
 
     private void CheckEmptyCell()
     {
@@ -223,6 +216,7 @@ public class Inventory : MonoBehaviour
             {
                 ClearStartDragCell();
                 ItemDragStop();
+                craftInventory.CheckCraftableItems();
             }
         }
 

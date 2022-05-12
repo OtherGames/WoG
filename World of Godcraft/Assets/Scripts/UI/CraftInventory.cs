@@ -11,6 +11,8 @@ public class CraftInventory : MonoBehaviour
     [SerializeField] List<CellCraftInventory> cells;
     [SerializeField] CellInventory cellResult;
 
+    public CellInventory CellResult => cellResult;
+
     public Action<int> OnItemClicked;
 
     EcsFilter filter;
@@ -66,8 +68,6 @@ public class CraftInventory : MonoBehaviour
 
     private void Crafting()
     {
-        var craftable = cells.FindAll(c => c.EntityItem != null);
-
         var craft = Service<Craft>.Get();
 
         List<byte?> set = GetCraftSet();
@@ -98,7 +98,7 @@ public class CraftInventory : MonoBehaviour
         if (craftableSet != null)
         {
             var result = craft.sets[craftableSet];
-
+            print("======================");
             var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
             var dropedBlock = new GameObject("Droped Block");
             dropedBlock.AddComponent<MeshRenderer>().material = FindObjectOfType<WorldOfGodcraft>().mat;
@@ -146,7 +146,16 @@ public class CraftInventory : MonoBehaviour
 
     private void AddCraftItemTag()
     {
-
+        var filterNoneCraft = ecsWorld.Filter<InventoryItem>().Exc<ItemCraftInventory>().End();
+        foreach (var entity in filterNoneCraft)
+        {
+            var cell = cells.Find(c => c.EntityItem != null && c.EntityItem.Value == entity);
+            if (cell)
+            {
+                ecsWorld.GetPool<ItemCraftInventory>().Add(entity);
+                return;
+            }
+        }
     }
 
     public void CheckCellForClear(int entity)
@@ -156,7 +165,13 @@ public class CraftInventory : MonoBehaviour
             cellResult.Clear();
         }
 
-        CraftItem_Seted();
+        //CheckCraftableItems();
+    }
+
+    public void CheckCraftableItems()
+    {
+        if (cellResult.EntityItem == null)
+            Crafting();
     }
 
     public CellCraftInventory GetEnteredCell()
