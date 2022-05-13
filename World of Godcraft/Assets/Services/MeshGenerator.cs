@@ -206,6 +206,9 @@ public class MeshGenerator
 
         if (noiseValue > 0.2f)
         {
+            if (noiseValue > 0.35f)
+                return 2;
+
             return 1;
         }
 

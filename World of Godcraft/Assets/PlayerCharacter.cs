@@ -113,53 +113,67 @@ public class PlayerCharacter : MonoBehaviour
 
             if (Input.GetMouseButtonDown(1))
             {
-                int idx = 0;
-                foreach (var entity in filter)
+                // зачем-то нужно прибавлять 1 по оси X, хз почему так, но именно так работает
+                ref var chunck = ref Service<World>.Get().GetChunk(blockPosition + Vector3.right);
+                var pos = chunck.renderer.transform.position;
+
+                // зачем-то нужно прибавлять 1 по оси X, хз почему так, но именно так работает
+                int xBlock = x - Mathf.FloorToInt(pos.x) + 1;
+                int yBlock = y - Mathf.FloorToInt(pos.y);
+                int zBlock = z - Mathf.FloorToInt(pos.z);
+                byte hitBlockID = chunck.blocks[xBlock, yBlock, zBlock];
+
+                if (hitBlockID == 100 || hitBlockID == 101)
                 {
-                    if (idx == InputHandler.Instance.quickSlotID - 1)
+                    GlobalEvents.interactBlockHited.Invoke(hitBlockID);
+                }
+                else
+                {
+                    int idx = 0;
+                    foreach (var entity in filter)
                     {
-                        var poolItems = ecsWorld.GetPool<InventoryItem>();
-                        ref var item = ref poolItems.Get(entity);
-
-                        if (item.itemType == ItemType.Block)
+                        if (idx == InputHandler.Instance.quickSlotID - 1)
                         {
-                            var e = godcraft.EcsWorld.NewEntity();
+                            var poolItems = ecsWorld.GetPool<InventoryItem>();
+                            ref var item = ref poolItems.Get(entity);
 
-                            var pool = godcraft.EcsWorld.GetPool<ChunckHitEvent>();
-                            pool.Add(e);
-                            ref var component = ref pool.Get(e);
-                            component.collider = hit.collider;
-                            component.position = blockPosition + hit.normal;
-                            component.blockId = item.blockID;
-
-                            onChunkHit?.Invoke(new Entity { id = e }, component);
-                           
-                            // HOT FIX вынести в отдельную систему
-                            item.count--;
-                            if (item.count == 0)
+                            if (item.itemType == ItemType.Block)
                             {
-                                Destroy(item.view);
-                                ecsWorld.DelEntity(entity);
+                                var e = godcraft.EcsWorld.NewEntity();
 
-                                //ecsWorld.GetPool<ItemQuickInventory>().Del(entity);
-                                //poolItems.Del(entity);
+                                var pool = godcraft.EcsWorld.GetPool<ChunckHitEvent>();
+                                pool.Add(e);
+                                ref var component = ref pool.Get(e);
+                                component.collider = hit.collider;
+                                component.position = blockPosition + hit.normal;
+                                component.blockId = item.blockID;
+
+                                onChunkHit?.Invoke(new Entity { id = e }, component);
+
+                                // HOT FIX вынести в отдельную систему
+                                item.count--;
+                                if (item.count == 0)
+                                {
+                                    Destroy(item.view);
+                                    ecsWorld.DelEntity(entity);
+                                }
+
+                                StartCoroutine(Delay());
+
+                                IEnumerator Delay()
+                                {
+                                    yield return null;
+
+                                    GlobalEvents.itemUsing?.Invoke(entity);
+                                }
+                                //-----------------------------------
+
                             }
 
-                            StartCoroutine(Delay());
-
-                            IEnumerator Delay()
-                            {
-                                yield return null;
-
-                                GlobalEvents.itemUsing?.Invoke(entity);
-                            }
-                            //-----------------------------------
-
+                            break;
                         }
-
-                        break;
+                        idx++;
                     }
-                    idx++;
                 }
             }
 
@@ -169,6 +183,7 @@ public class PlayerCharacter : MonoBehaviour
             highlight.position = default;
         }
     }
+
 
 
     void SaveController()

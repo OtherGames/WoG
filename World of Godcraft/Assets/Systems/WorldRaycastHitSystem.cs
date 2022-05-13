@@ -126,6 +126,11 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
 
     void CreateDropedBlock(byte id, float x, float y, float z)
     {
+        if (id == 2)
+        {
+            id = 3;
+        }
+
         var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
         var dropedBlock = new GameObject("Droped Block " + x + y + z);
         dropedBlock.AddComponent<MeshRenderer>().material = Object.FindObjectOfType<WorldOfGodcraft>().mat;

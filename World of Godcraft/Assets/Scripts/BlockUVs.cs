@@ -52,9 +52,9 @@ public class BlockUVS
             case 2:
                 return new BlockUVS(1, 15);
             case 3:
-                return new BlockUVS(2, 15);
-            case 4:
                 return new BlockUVS(0, 14);
+            case 4:
+                return new BlockUVS(0, 0);
             case 5:
                 return new BlockUVS(1, 1);
             case 6:
@@ -67,8 +67,12 @@ public class BlockUVS
                 return new BlockUVS(0, 2);
             case 10:
                 return new BlockUVS(5, 12);
-            case 100:
+            case 11:// Доски
+                return new BlockUVS(4, 15);
+            case 100:// Простой верстак
                 return new BlockUVS(15, 0);
+            case 101:// Верстак
+                return new BlockUVS(11, 13);
 
         }
 

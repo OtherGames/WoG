@@ -12,7 +12,7 @@ sealed class WorldGeneratorInit : IEcsInitSystem
     readonly EcsWorld ecsWorld = default;
 
 
-    public const int worldSize = 5;
+    public const int worldSize = 10;
     public const int size = 32;
     public const int noiseScale = 100;
     public const float TextureOffset = 1f / 16f;
@@ -66,7 +66,7 @@ sealed class WorldGeneratorInit : IEcsInitSystem
             {
                 for (int z = 0; z < size; z++)
                 {
-                    chunckComponent.blocks[x, y, z] = BlockExist(x + posX, y + posY, z + posZ);                    
+                    chunckComponent.blocks[x, y, z] = GeneratedBlockID(x + posX, y + posY, z + posZ);                    
                 }
             }
         }
@@ -123,19 +123,19 @@ sealed class WorldGeneratorInit : IEcsInitSystem
                         //BlockUVS b = new BlockUVS(1, 15);
                         //BlockUVS b = new(2, 15);
 
-                        if ((z + 1 >= size && BlockExist(x + posX, y + posY, z + 1 + posZ) == 0) || (!(z + 1 >= size) && chunck.blocks[x, y, z + 1] == 0))
+                        if ((z + 1 >= size && GeneratedBlockID(x + posX, y + posY, z + 1 + posZ) == 0) || (!(z + 1 >= size) && chunck.blocks[x, y, z + 1] == 0))
                         {
                             CreateBlockSide(BlockSide.Front, x, y, z, b);
                         }
-                        if ((z - 1 < 0 && BlockExist(x + posX, y + posY, z - 1 + posZ) == 0) || (!(z - 1 < 0) && chunck.blocks[x, y, z - 1] == 0))
+                        if ((z - 1 < 0 && GeneratedBlockID(x + posX, y + posY, z - 1 + posZ) == 0) || (!(z - 1 < 0) && chunck.blocks[x, y, z - 1] == 0))
                         {
                             CreateBlockSide(BlockSide.Back, x, y, z, b);
                         }
-                        if ((x + 1 >= size && BlockExist(x + 1 + posX, y + posY, z + posZ) == 0) || (!(x + 1 >= size) && chunck.blocks[x + 1, y, z] == 0))
+                        if ((x + 1 >= size && GeneratedBlockID(x + 1 + posX, y + posY, z + posZ) == 0) || (!(x + 1 >= size) && chunck.blocks[x + 1, y, z] == 0))
                         {
                             CreateBlockSide(BlockSide.Right, x, y, z, b);
                         }
-                        if ((x - 1 < 0 && BlockExist(x - 1 + posX, y + posY, z + posZ) == 0) || (!(x - 1 < 0) && chunck.blocks[x - 1, y, z] == 0))
+                        if ((x - 1 < 0 && GeneratedBlockID(x - 1 + posX, y + posY, z + posZ) == 0) || (!(x - 1 < 0) && chunck.blocks[x - 1, y, z] == 0))
                         {
                             CreateBlockSide(BlockSide.Left, x, y, z, b);
                         }
@@ -314,14 +314,14 @@ sealed class WorldGeneratorInit : IEcsInitSystem
 
     }
 
-    public byte BlockExist(int x, int y, int z)
+    public byte GeneratedBlockID(int x, int y, int z)
     {
         Random.InitState(505);
 
         int k = 10000;
 
         Vector3 offset = new(Random.value * k, Random.value * k, Random.value * k);
-        //offset = Vector3.zero;
+        
         float noiseX = Mathf.Abs((float)(x + offset.x) / noiseScale);
         float noiseY = Mathf.Abs((float)(y + offset.y) / noiseScale);
         float noiseZ = Mathf.Abs((float)(z + offset.z) / noiseScale);
@@ -329,14 +329,17 @@ sealed class WorldGeneratorInit : IEcsInitSystem
         float noiseValue = SimplexNoise.Noise.Generate(noiseX, noiseY, noiseZ);
         //float cavernas = SimplexNoise.Noise.Generate(noiseX, noiseY, noiseZ);
 
-        noiseValue += (30 - y) / 30f;// World bump
+        noiseValue += (50 - y) / 30f;// World bump
         noiseValue /= y / 8f;
 
         //cavernas /= y / 19f;
         //cavernas /= 2;
-
-        if (noiseValue > 0.2f)
+        //Debug.Log($"{noiseValue} --- {y}");
+        if (noiseValue > 0.3f)
         {
+            if (noiseValue > 0.5f)
+                return 2;
+
             return 1;
         }
 

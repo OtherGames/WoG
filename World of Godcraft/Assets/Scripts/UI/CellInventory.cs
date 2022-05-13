@@ -20,6 +20,8 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
     {
         EntityItem = entity;
 
+        objectHolder.localPosition = new(0, 0, objectHolder.localPosition.z);
+
         item.view.transform.SetParent(objectHolder, false);
         item.view.transform.localPosition = Vector3.zero;
         item.view.transform.localRotation = Quaternion.identity;
@@ -39,6 +41,11 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
         //dragItem.view.transform.localRotation = Quaternion.identity;
 
         OnItemSeted?.Invoke(this);
+    }
+
+    internal void UpdateItem(ref InventoryItem item)
+    {
+        labelCount.text = item.count > 1 ? $"x{item.count}" : "";
     }
 
     public void Clear()

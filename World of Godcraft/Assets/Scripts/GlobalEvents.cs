@@ -18,4 +18,10 @@ public class GlobalEvents
 
     //-----------------------------------------------------------------------
 
+    public class InteractBlockHited : UnityEvent<byte> { }
+
+    public static InteractBlockHited interactBlockHited = new();
+
+    //-----------------------------------------------------------------------
+
 }

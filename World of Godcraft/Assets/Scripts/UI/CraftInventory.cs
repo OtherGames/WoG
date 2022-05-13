@@ -11,12 +11,14 @@ public class CraftInventory : MonoBehaviour
     [SerializeField] List<CellCraftInventory> cells;
     [SerializeField] CellInventory cellResult;
 
+    public List<CellCraftInventory> Cells => cells;
     public CellInventory CellResult => cellResult;
 
     public Action<int> OnItemClicked;
 
     EcsFilter filter;
     EcsWorld ecsWorld;
+    CraftedItem craftedItem;
 
     public void Init()
     {
@@ -26,14 +28,26 @@ public class CraftInventory : MonoBehaviour
         foreach (var cell in cells)
         {
             cell.OnItemSeted += CraftItem_Seted;
+            cell.onItemClick += Item_Clicked;
         }
         cellResult.onItemClick += CraftResult_Clicked;
+    }
+
+    private void Item_Clicked(int entity)
+    {
+        OnItemClicked?.Invoke(entity);
+
+        ClearCraftedItem();
+
+        cellResult.Clear();
     }
 
     private void CraftResult_Clicked(int entity)
     {
         RemoveUsedItem();
         OnItemClicked?.Invoke(entity);
+
+        craftedItem = null;
     }
 
     // TODO
@@ -95,6 +109,8 @@ public class CraftInventory : MonoBehaviour
             }
         }
 
+        ClearCraftedItem();
+
         if (craftableSet != null)
         {
             var result = craft.sets[craftableSet];
@@ -117,6 +133,8 @@ public class CraftInventory : MonoBehaviour
             component.itemType = ItemType.Block;
 
             cellResult.Init(entity, ref component);
+
+            craftedItem = new() { entity = entity, view = dropedBlock };
         }
     }
 
@@ -158,14 +176,22 @@ public class CraftInventory : MonoBehaviour
         }
     }
 
+    private void ClearCraftedItem()
+    {
+        if (craftedItem != null)
+        {
+            Destroy(craftedItem.view);
+            ecsWorld.DelEntity(craftedItem.entity);
+            craftedItem = null;
+        }
+    }
+
     public void CheckCellForClear(int entity)
     {
         if(cellResult.EntityItem == entity)
         {
             cellResult.Clear();
         }
-
-        //CheckCraftableItems();
     }
 
     public void CheckCraftableItems()
@@ -177,5 +203,11 @@ public class CraftInventory : MonoBehaviour
     public CellCraftInventory GetEnteredCell()
     {
         return cells.Find(c => c.IsPointerEntered);
+    }
+
+    public class CraftedItem
+    {
+        public int entity;
+        public GameObject view;
     }
 }

@@ -5,12 +5,13 @@ using UnityEngine;
 using System;
 using TMPro;
 
-public class CellCraftInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class CellCraftInventory : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] Transform objectHolder;
     [SerializeField] public TMP_Text labelCount;
 
     public Action OnItemSeted;
+    public Action<int> onItemClick;
 
     public int? EntityItem { get; set; }
     public bool IsPointerEntered { get; set; }
@@ -53,6 +54,14 @@ public class CellCraftInventory : MonoBehaviour, IPointerEnterHandler, IPointerE
         EntityItem = null;
     }
 
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (EntityItem != null)
+        {
+            onItemClick?.Invoke(EntityItem.Value);
+        }
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         IsPointerEntered = true;
@@ -62,4 +71,5 @@ public class CellCraftInventory : MonoBehaviour, IPointerEnterHandler, IPointerE
     {
         IsPointerEntered = false;
     }
+
 }

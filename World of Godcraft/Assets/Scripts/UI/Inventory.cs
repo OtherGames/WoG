@@ -1,10 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine;
 using System.Linq;
 using TMPro;
 using Leopotam.EcsLite;
+using UnityEngine.EventSystems;
+using LeopotamGroup.Globals;
 
 public class Inventory : MonoBehaviour
 {
@@ -18,6 +21,7 @@ public class Inventory : MonoBehaviour
     public float ScreenScale { get; set; }
 
     readonly List<CellInventory> cells = new();
+    EcsPool<InventoryItem> poolItems;
     DragItem dragItem;
     EcsFilter filterItems;
     EcsFilter filter;
@@ -31,21 +35,23 @@ public class Inventory : MonoBehaviour
 
         filter = ecsWorld.Filter<InventoryItem>().Exc<ItemQuickInventory>().Exc<ItemCraftInventory>().End();
         filterItems = ecsWorld.Filter<InventoryItem>().End();
+        poolItems = ecsWorld.GetPool<InventoryItem>();
 
         for (int i = 0; i < size; i++)
         {
             var cell = Instantiate(cellPrefab, parent);
             cells.Add(cell);
             cell.labelCount.text = "";
+            cell.onItemClick += ItemClicked;
         }
 
         craftInventory.Init();
         craftInventory.OnItemClicked += ItemOnCraft_Clicked;
 
         GlobalEvents.itemTaked.AddListener(Item_Taked);
-    }
 
-   
+        dragItem = null;
+    }
 
     private void Item_Taked()
     {
@@ -74,6 +80,8 @@ public class Inventory : MonoBehaviour
 
     public void Show()
     {
+        quickInventory.onItemClicked += ItemClicked;
+
         IsShowed = true;
 
         gameObject.SetActive(true);
@@ -83,12 +91,14 @@ public class Inventory : MonoBehaviour
 
     public void Hide()
     {
+        quickInventory.onItemClicked -= ItemClicked;
+
         IsShowed = false;
 
         gameObject.SetActive(false);
     }
 
-    public void ItemClicked(int entity)
+    private void ItemClicked(int entity)
     {
         CreateDragItem(entity);
     }
@@ -110,23 +120,25 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    private void ItemDragStop()
+    private bool ItemDragStop()
     {
-        print("Item Droped");
         var cell = craftInventory.GetEnteredCell();
-
+        var cellInventory = quickInventory.GetEnteredCell();
+        bool result = false;
         if (cell)
         {
             cell.SetItem(dragItem);
             dragItem = null;
+            result = true;
         }
         else
         {
-            var cellInventory = quickInventory.GetEnteredCell();
+            
             if (cellInventory)
             {
                 quickInventory.SetItem(dragItem, cellInventory);
                 dragItem = null;
+                result = true;
             }
             else
             {
@@ -135,9 +147,13 @@ public class Inventory : MonoBehaviour
                 {
                     SetItem(cellInventory);
                     dragItem = null;
+                    result = true;
                 }
             }
         }
+
+        print("Item Droped - " + cell + " - " + cellInventory);
+        return result;
     }
 
     private void SetItem(CellInventory cell)
@@ -198,21 +214,31 @@ public class Inventory : MonoBehaviour
         forCheck.ForEach(c => c.Clear());
     }
 
-    private void ClearStartDragCell()
+    private void ClearCellStartDrag()
     {
+        var craftCell = craftInventory.Cells.Find(c => c.EntityItem == dragItem.entity);
+        if(craftCell != null)
+        {
+            ecsWorld.GetPool<ItemCraftInventory>().Del(craftCell.EntityItem.Value);
+            craftCell.Clear();
+        }
+
         var cell = quickInventory.Cells.Find(c => c.EntityItem == dragItem.entity);
-        if(cell != null)
+        if (cell != null)
         {
             ecsWorld.GetPool<ItemQuickInventory>().Del(cell.EntityItem.Value);
             cell.Clear();
         }
+        else
+        {
+            cell = cells.Find(c => c.EntityItem == dragItem.entity);
+            if (cell != null)
+            {
+                cell.Clear();
+            }
+        }
 
         craftInventory.CheckCellForClear(dragItem.entity);
-    }
-
-    private void CheckCraftableCells()
-    {
-        
     }
     
     private void Update()
@@ -229,9 +255,52 @@ public class Inventory : MonoBehaviour
 
             if (Input.GetMouseButtonUp(0))
             {
-                ClearStartDragCell();
-                ItemDragStop();
-                craftInventory.CheckCraftableItems();
+                ClearCellStartDrag();
+                if (ItemDragStop())
+                    craftInventory.CheckCraftableItems();
+            }
+
+            if (Input.GetMouseButtonDown(1))
+            {
+                var pointer = new PointerEventData(EventSystem.current)
+                {
+                    position = Input.mousePosition
+                };
+                var result = new List<RaycastResult>();
+                EventSystem.current.RaycastAll(pointer, result);
+                foreach (var element in result)
+                {
+                    var cell = element.gameObject.GetComponent<CellCraftInventory>();
+                    
+                    if (cell && cell.EntityItem == null)
+                    {
+                        ref var component = ref poolItems.Get(dragItem.entity);
+                        
+                        if (component.count > 1)
+                        {
+                            component.count--;
+                            dragItem.count--;
+                            var splitItem = CreateSplitItem(component.blockID);
+                            cell.SetItem(splitItem);
+                            UpdateDragItem();
+                        }
+                        else
+                        {
+                            ClearCellStartDrag();
+                            cell.SetItem(dragItem);
+                            dragItem = null;
+                            craftInventory.CheckCraftableItems();
+                        }
+                        
+
+
+                        
+                    }
+                }
+
+                //ClearStartDragCell();
+                //if (ItemDragStop())
+                //    craftInventory.CheckCraftableItems();
             }
         }
 
@@ -239,7 +308,57 @@ public class Inventory : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.V))
         {
+            print(dragItem.view);
             dragItem = null;
+        }
+    }
+
+    private DragItem CreateSplitItem(byte blockID)
+    {
+        var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
+        var dropedBlock = new GameObject("Droped Block");
+        dropedBlock.AddComponent<MeshRenderer>().material = FindObjectOfType<WorldOfGodcraft>().mat;
+        dropedBlock.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMesh(blockID);
+        dropedBlock.AddComponent<DropedBlock>();
+        dropedBlock.transform.localScale /= 3f;
+        dropedBlock.layer = 5;
+
+        var entity = ecsWorld.NewEntity();
+        var pool = ecsWorld.GetPool<InventoryItem>();
+        pool.Add(entity);
+        ref var component = ref pool.Get(entity);
+        component.blockID = blockID;
+        component.view = dropedBlock;
+        component.count = 1;
+        component.itemType = ItemType.Block;
+
+        return new() { view = dropedBlock, entity = entity, count = component.count };
+    }
+
+    // HOT FIX
+    private void UpdateDragItem()
+    {
+        var craftCell = craftInventory.Cells.Find(c => c.EntityItem == dragItem.entity);
+        if (craftCell != null)
+        {
+            ref var component = ref poolItems.Get(craftCell.EntityItem.Value);
+            craftCell.UpdateItem(ref component);
+        }
+
+        var cell = quickInventory.Cells.Find(c => c.EntityItem == dragItem.entity);
+        if (cell != null)
+        {
+            ref var component = ref poolItems.Get(cell.EntityItem.Value);
+            cell.UpdateItem(ref component);
+        }
+        else
+        {
+            cell = cells.Find(c => c.EntityItem == dragItem.entity);
+            if (cell != null)
+            {
+                ref var component = ref poolItems.Get(cell.EntityItem.Value);
+                cell.UpdateItem(ref component);
+            }
         }
     }
 }
