@@ -24,4 +24,10 @@ public class GlobalEvents
 
     //-----------------------------------------------------------------------
 
+    public class OnHitPickable : UnityEvent<GameObject> { }
+
+    public static OnHitPickable onHitPickable = new();
+
+    //-----------------------------------------------------------------------
+
 }

@@ -4,6 +4,8 @@ using UnityEngine.UI;
 using UnityEngine;
 using UnityStandardAssets.Characters.FirstPerson;
 using System;
+using Leopotam.EcsLite;
+using TMPro;
 
 public class HUD : MonoBehaviour
 {
@@ -22,10 +24,19 @@ public class HUD : MonoBehaviour
     [SerializeField]
     private Color redColorMode;
 
+    [Space]
+
+    [SerializeField] Image indicatorEat;
+    [SerializeField] TMP_Text pickableLabel;
+
     public static bool WriteMode { get; set; }
     public bool InventoryShowed => inventory.IsShowed || workbenchSimle.IsShowed;
 
     PlayerCharacter player;
+    EcsWorld ecsWorld;
+    EcsFilter players;
+    EcsFilter filterPickable;
+    EcsPool<PickableComponent> poolPickable;
 
     private IEnumerator Start()
     {
@@ -42,8 +53,14 @@ public class HUD : MonoBehaviour
 
         quickInventory.onItemClicked += Item_Clicked;
         GlobalEvents.interactBlockHited.AddListener(InteractableBlock_Hit);
+        GlobalEvents.onHitPickable.AddListener(Pickable_Hited);
 
         group.SetActive(false);
+
+        ecsWorld = FindObjectOfType<WorldOfGodcraft>().EcsWorld;
+        players = ecsWorld.Filter<Character>().Inc<SatietyComponent>().End();
+        filterPickable = ecsWorld.Filter<PickableComponent>().End();
+        poolPickable = ecsWorld.GetPool<PickableComponent>();
 
         yield return null;
 
@@ -125,5 +142,28 @@ public class HUD : MonoBehaviour
         inventory.ScreenScale = transform.lossyScale.x;
         workbenchSimle.ScreenScale = transform.lossyScale.x;
         workbench.ScreenScale = transform.lossyScale.x;
+
+        UpdateIndicators();
+    }
+
+    private void UpdateIndicators()
+    {
+        foreach (var entity in players)
+        {
+            ref var satiety = ref ecsWorld.GetPool<SatietyComponent>().Get(entity);
+            indicatorEat.fillAmount = (float)satiety.Value / (float)satiety.MaxValue;
+        }
+    }
+
+    private void Pickable_Hited(GameObject view)
+    {
+        foreach (var entity in filterPickable)
+        {
+            ref var component = ref poolPickable.Get(entity);
+            if(component.view == view)
+            {
+                print("нашел сраную моркву");
+            }
+        }
     }
 }

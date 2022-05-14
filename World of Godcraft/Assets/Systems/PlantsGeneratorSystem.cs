@@ -90,9 +90,10 @@ sealed class PlantsGeneratorSystem : IEcsRunSystem
 
                             chunck.chunck.blocks[xPos, yPos, zPos] = topology[x, y, z];
 
+                            // Добавление блока внизу, если дерево стоит в воздухе
                             if (y > 0)
                                 continue;
-
+                            
                             if (chunck.chunck.blocks[xPos, yPos, zPos] > 0 && chunck.chunck.blocks[xPos, yPos - 1, zPos] == 0)
                             {
                                 chunck.chunck.blocks[xPos, yPos - 1, zPos] = 8;
@@ -105,13 +106,26 @@ sealed class PlantsGeneratorSystem : IEcsRunSystem
             var otherMesh = generator.UpdateMesh(ref chunck.chunck);
             chunck.chunck.meshFilter.mesh = otherMesh;
             chunck.chunck.collider.sharedMesh = otherMesh;
+
+            // Вроде и так работало, но вроде бы так нужно
+            //int wSize = WorldGeneratorInit.worldSize;
+            //var w = Service<World>.Get();
+            //for (int i = 0; i < wSize; i++)
+            //{
+            //    for (int j = 0; j < 1; j++)
+            //    {
+            //        for (int k = 0; k < wSize; k++)
+            //        {
+            //            if (w.chuncks[i, j, k].pos == chunck.chunck.pos)
+            //            {
+            //                w.chuncks[i, j, k] = chunck.chunck;
+            //            }
+            //        }
+            //    }
+            //}
+            // Нихуя, не работает с этим кодом
         }
     }
-
-    //private Vector3Int GetRandomUpperPos()
-    //{
-
-    //}
 
     List<WritableBlock> LoadBlocks()
     {

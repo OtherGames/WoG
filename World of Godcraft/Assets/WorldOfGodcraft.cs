@@ -21,7 +21,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
         var meshGenerator = new MeshGenerator();
         meshGenerator.Init();
         Service<MeshGenerator>.Set(meshGenerator);
-
+        Service<PrefabsHolder>.Set(GetComponent<PrefabsHolder>());
         Service<DropedBlockGenerator>.Set(new());
         Service<Craft>.Set(new());
 
@@ -40,10 +40,11 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new NetworkChunckChangeSendSystem())
             .Add(new WriteBlockSystem())
             .Add(new PlantsGeneratorSystem())
+            .Add(new GenerateMorkvaSystem())
             .Add(new DropedLifetimeSystem())
             .Add(new TakeDropedSystem())
             .Add(new TakeBlockSystem())
-            //.Add(new TakeBlockSystem())
+            .Add(new SatietySystem())
 
             // .Add (new TestSystem2 ())
 

@@ -53,6 +53,12 @@ public class PlayerCharacter : MonoBehaviour
         ecsWorld = godcraft.EcsWorld;
 
         filter = ecsWorld.Filter<InventoryItem>().Inc<ItemQuickInventory>().End();
+
+        int entity = ecsWorld.NewEntity();
+        ecsWorld.GetPool<Character>().Add(entity);
+        ref var satiety = ref ecsWorld.GetPool<SatietyComponent>().Add(entity);
+        satiety.MaxValue = 100;
+        satiety.Value = satiety.MaxValue;
     }
 
     // Update is called once per frame
@@ -69,6 +75,12 @@ public class PlayerCharacter : MonoBehaviour
 
         if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out RaycastHit hit, 7f, lm))
         {
+            if (hit.collider.gameObject.CompareTag("PICKABLE"))
+            {
+                HitOnPickable(hit.collider.gameObject);
+                return;
+            }
+           
             Vector3 normalPos = hit.point - (hit.normal / 2);
 
             int x = Mathf.FloorToInt(normalPos.x);
@@ -184,7 +196,10 @@ public class PlayerCharacter : MonoBehaviour
         }
     }
 
-
+    void HitOnPickable(GameObject view)
+    {
+        GlobalEvents.onHitPickable?.Invoke(view);
+    }
 
     void SaveController()
     {

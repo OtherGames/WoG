@@ -90,6 +90,7 @@ sealed class WorldGeneratorInit : IEcsInitSystem
         chunckComponent.renderer = renderer;
         chunckComponent.meshFilter = meshFilter;
         chunckComponent.collider = collider;
+        chunckComponent.pos = chunck.transform.position;
 
         RaiseChunkInitEvent(chunckComponent);
 
@@ -119,12 +120,10 @@ sealed class WorldGeneratorInit : IEcsInitSystem
                 {
                     if (chunck.blocks[x, y, z] > 0)
                     {
-                        BlockUVS b = new(0, 15, 3, 15, 2, 15);
+                        BlockUVS b = BlockUVS.GetBlock(chunck.blocks[x, y, z]);
 
                         if (x == 0 && z == 0)
                             b = new BlockUVS(2, 15);
-                        //BlockUVS b = new BlockUVS(1, 15);
-                        //BlockUVS b = new(2, 15);
 
                         if ((z + 1 >= size && GeneratedBlockID(x + posX, y + posY, z + 1 + posZ) == 0) || (!(z + 1 >= size) && chunck.blocks[x, y, z + 1] == 0))
                         {
