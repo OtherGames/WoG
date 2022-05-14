@@ -58,7 +58,7 @@ public class BlockUVS
             case 5:
                 return new BlockUVS(1, 1);
             case 6:
-                return new BlockUVS(1, 3);
+                return new BlockUVS(2, 13);
             case 7:
                 return new BlockUVS(4, 2);
             case 8:// Бревно
