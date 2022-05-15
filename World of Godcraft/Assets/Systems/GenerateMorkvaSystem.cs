@@ -29,6 +29,14 @@ sealed class GenerateMorkvaSystem : IEcsRunSystem
                 ref var pickable = ref systems.GetWorld().GetPool<PickableComponent>().Add(e);
                 pickable.view = morkva;
                 pickable.name = "Морква";
+                pickable.id = 170;
+
+                ref var food = ref systems.GetWorld().GetPool<FoodComponent>().Add(e);
+                food.view = morkva;
+                food.id = 170;
+                food.satietyValue = 10;
+                food.freshMax = 300;
+                food.freshValue = food.freshMax;
             }
         }
     }

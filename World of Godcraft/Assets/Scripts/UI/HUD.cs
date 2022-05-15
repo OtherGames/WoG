@@ -30,9 +30,10 @@ public class HUD : MonoBehaviour
     [SerializeField] TMP_Text pickableLabel;
 
     public static bool WriteMode { get; set; }
-    public bool InventoryShowed => inventory.IsShowed || workbenchSimle.IsShowed;
+    public bool InventoryShowed => inventory.IsShowed || workbenchSimle.IsShowed | workbench.IsShowed;
 
     PlayerCharacter player;
+    GameObject pickable;
     EcsWorld ecsWorld;
     EcsFilter players;
     EcsFilter filterPickable;
@@ -51,7 +52,6 @@ public class HUD : MonoBehaviour
 
         quickInventory.Init();
 
-        quickInventory.onItemClicked += Item_Clicked;
         GlobalEvents.interactBlockHited.AddListener(InteractableBlock_Hit);
         GlobalEvents.onHitPickable.AddListener(Pickable_Hited);
 
@@ -96,10 +96,6 @@ public class HUD : MonoBehaviour
         }
     }
 
-    private void Item_Clicked(int entity)
-    {
-        //inventory.ItemClicked(entity);
-    }
 
     private void Update()
     {
@@ -144,6 +140,7 @@ public class HUD : MonoBehaviour
         workbench.ScreenScale = transform.lossyScale.x;
 
         UpdateIndicators();
+        UpdatePickabaleLabel();
     }
 
     private void UpdateIndicators()
@@ -155,15 +152,33 @@ public class HUD : MonoBehaviour
         }
     }
 
-    private void Pickable_Hited(GameObject view)
+    private void UpdatePickabaleLabel()
     {
-        foreach (var entity in filterPickable)
+        if (pickable)
         {
-            ref var component = ref poolPickable.Get(entity);
-            if(component.view == view)
+            foreach (var entity in filterPickable)
             {
-                print("нашел сраную моркву");
+                ref var component = ref poolPickable.Get(entity);
+                if (component.view == pickable)
+                {
+                    pickableLabel.text = component.name;
+
+                    var pos = pickable.transform.position + (Vector3.up * 0.7f);
+                    var screenpos = Camera.main.WorldToScreenPoint(pos);
+                    pickableLabel.transform.position = screenpos;
+                }
             }
         }
+        else
+        {
+            pickableLabel.text = string.Empty;
+        }
+
+        pickable = null;
+    }
+
+    private void Pickable_Hited(GameObject view)
+    {
+        pickable = view;
     }
 }

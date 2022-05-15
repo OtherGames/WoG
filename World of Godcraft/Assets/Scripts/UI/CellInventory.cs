@@ -10,7 +10,7 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
     [SerializeField] Transform objectHolder;
     [SerializeField] public TMP_Text labelCount;
 
-    public bool IsPointerEntered { get; set; }
+    //public bool IsPointerEntered { get; set; }
     public int? EntityItem { get; set; }
 
     public Action<CellInventory> OnItemSeted;
@@ -28,6 +28,11 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
 
         item.view.SetActive(true);
         item.view.layer = 5;
+
+        foreach (var view in item.view.GetComponentsInChildren<Transform>())
+        {
+            view.gameObject.layer = 5;
+        }
 
         labelCount.text = item.count > 1 ? $"x{item.count}" : "";
     }
@@ -65,11 +70,11 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
 
     public virtual void OnPointerEnter(PointerEventData eventData)
     {
-        IsPointerEntered = true;
+        //IsPointerEntered = true;
     }
 
     public virtual void OnPointerExit(PointerEventData eventData)
     {
-        IsPointerEntered = false;
+        //IsPointerEntered = false;
     }
 }

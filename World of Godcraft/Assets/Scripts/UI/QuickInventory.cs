@@ -111,8 +111,5 @@ public class QuickInventory : MonoBehaviour
         }
     }
 
-    public CellInventory GetEnteredCell()
-    {
-        return cells.Find(c => c.IsPointerEntered);
-    }
+    
 }

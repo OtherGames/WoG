@@ -45,8 +45,8 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new TakeDropedSystem())
             .Add(new TakeBlockSystem())
             .Add(new SatietySystem())
-
-            // .Add (new TestSystem2 ())
+            .Add(new TakeItemSystem())
+            .Add(new UsingFoodSystem())
 
             // register additional worlds here, for example:
             // .AddWorld (new EcsWorld (), "events")
@@ -59,6 +59,8 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .DelHere<NetworkChunckChanged>()
             .DelHere<ChunkInited>()
             .DelHere<BlockTaked>()
+            .DelHere<ItemTaked>()
+            .DelHere<ItemUsed>()
 
 
             .Inject(world)

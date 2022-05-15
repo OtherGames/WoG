@@ -172,22 +172,34 @@ public class PlayerCharacter : MonoBehaviour
 
                                 StartCoroutine(Delay());
 
-                                IEnumerator Delay()
-                                {
-                                    yield return null;
-
-                                    GlobalEvents.itemUsing?.Invoke(entity);
-                                }
                                 //-----------------------------------
+                            }
+                            else
+                            {
+                                ref var used = ref ecsWorld.GetPool<ItemUsed>().Add(entity);
+                                used.entity = entity;
+                                used.id = item.blockID;
 
+                                StartCoroutine(Delay());
+                            }
+
+                            IEnumerator Delay()
+                            {
+                                yield return null;
+
+                                GlobalEvents.itemUsing?.Invoke(entity);
                             }
 
                             break;
                         }
                         idx++;
                     }
+
+
                 }
             }
+
+
 
         }
         else
@@ -199,6 +211,12 @@ public class PlayerCharacter : MonoBehaviour
     void HitOnPickable(GameObject view)
     {
         GlobalEvents.onHitPickable?.Invoke(view);
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            ref var item = ref ecsWorld.GetPool<ItemTaked>().Add(ecsWorld.NewEntity());
+            item.view = view;
+        }
     }
 
     void SaveController()

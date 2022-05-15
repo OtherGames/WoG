@@ -6,4 +6,5 @@ struct FoodComponent
     public int satietyValue;
     public float freshValue;
     public float freshMax;
+    public int id;
 }

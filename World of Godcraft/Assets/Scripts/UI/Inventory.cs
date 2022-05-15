@@ -122,27 +122,28 @@ public class Inventory : MonoBehaviour
 
     private bool ItemDragStop()
     {
-        var cell = craftInventory.GetEnteredCell();
-        var cellInventory = quickInventory.GetEnteredCell();
         bool result = false;
-        if (cell)
+
+        var pointer = new PointerEventData(EventSystem.current)
         {
-            cell.SetItem(dragItem);
-            dragItem = null;
-            result = true;
-        }
-        else
+            position = Input.mousePosition
+        };
+        var raycasts = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointer, raycasts);
+        foreach (var raycast in raycasts)
         {
-            
-            if (cellInventory)
+            var cell = raycast.gameObject.GetComponent<CellCraftInventory>();
+
+            if (cell)
             {
-                quickInventory.SetItem(dragItem, cellInventory);
+                cell.SetItem(dragItem);
                 dragItem = null;
                 result = true;
             }
             else
             {
-                cellInventory = cells.Find(c => c.IsPointerEntered);
+                var cellInventory = raycast.gameObject.GetComponent<CellInventory>();
+
                 if (cellInventory)
                 {
                     SetItem(cellInventory);
@@ -151,8 +152,6 @@ public class Inventory : MonoBehaviour
                 }
             }
         }
-
-        print("Item Droped - " + cell + " - " + cellInventory);
         return result;
     }
 

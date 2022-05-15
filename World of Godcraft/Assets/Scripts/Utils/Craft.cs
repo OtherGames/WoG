@@ -5,12 +5,6 @@ using UnityEngine;
 
 public class Craft
 {
-    //public Dictionary<byte?[], byte> sets = new()
-    //{
-    //    { new byte?[] { null, 8 }, 100 },
-    //    { new byte?[] { 8, null }, 100 },
-    //};
-
     public Dictionary<byte?[], Tuple<byte, int>> sets = new()
     {
         #region Доски
@@ -47,7 +41,12 @@ public class Craft
                         100, 100 }, new(101, 1) },
         #endregion
 
-        #region Простой Верстак
+        #region Печь
+        {
+            new byte?[] { 3,  3,  3,
+                          3, null,3,
+                          3,  3,  3 }, new(102, 1)
+        },
         #endregion
 
         #region Простой Верстак

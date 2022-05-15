@@ -27,20 +27,6 @@ sealed class TakeBlockSystem : IEcsRunSystem
 
             bool isNewItem = true;
 
-            //foreach (var entityInventory in filterQuickInventory)
-            //{
-            //    var poolQuickInventory = world.GetPool<ItemQuickInventory>();
-            //    ref var itemQuick = ref poolInventory.Get(entityInventory);
-
-            //    if(itemQuick.blockID == component.blockID)
-            //    {
-            //        itemQuick.count++;
-            //        isNewItem = false;
-
-            //        Object.Destroy(itemQuick.view);
-            //    }
-            //}
-            
             foreach (var entityInventory in filterInventory)
             {
                 ref var itemInventory = ref poolInventory.Get(entityInventory);
