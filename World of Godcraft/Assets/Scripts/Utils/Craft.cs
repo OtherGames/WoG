@@ -53,5 +53,16 @@ public class Craft
         #endregion
     };
 
+    // id блока/предмета и время горения
+    public Dictionary<byte, byte> setsCombustible = new()
+    {
+        { 8,  39 },
+        { 11, 10 },
+    };
 
+    // id блока/предмета и время обработки огнем
+    public Dictionary<byte, byte> setsFurnaceable = new()
+    {
+
+    };
 }

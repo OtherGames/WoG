@@ -54,6 +54,7 @@ sealed class TakeDropedSystem : IEcsRunSystem
         ref var taked = ref poolTaked.Get(e);
         taked.blockID = component.BlockID;
         taked.view = component.view;
+        taked.itemType = component.itemType;
 
         component.view.SetActive(false);
     }

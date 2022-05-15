@@ -42,11 +42,13 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new PlantsGeneratorSystem())
             .Add(new GenerateMorkvaSystem())
             .Add(new DropedLifetimeSystem())
+            .Add(new DropCoalSystem())
             .Add(new TakeDropedSystem())
             .Add(new TakeBlockSystem())
             .Add(new SatietySystem())
             .Add(new TakeItemSystem())
             .Add(new UsingFoodSystem())
+
 
             // register additional worlds here, for example:
             // .AddWorld (new EcsWorld (), "events")
@@ -58,6 +60,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             //.DelHere<ChunckHitEvent>()
             .DelHere<NetworkChunckChanged>()
             .DelHere<ChunkInited>()
+            .DelHere<DropedCreated>()
             .DelHere<BlockTaked>()
             .DelHere<ItemTaked>()
             .DelHere<ItemUsed>()

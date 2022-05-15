@@ -135,7 +135,7 @@ public class PlayerCharacter : MonoBehaviour
                 int zBlock = z - Mathf.FloorToInt(pos.z);
                 byte hitBlockID = chunck.blocks[xBlock, yBlock, zBlock];
 
-                if (hitBlockID == 100 || hitBlockID == 101)
+                if (hitBlockID == 100 || hitBlockID == 101 || hitBlockID == 102)
                 {
                     GlobalEvents.interactBlockHited.Invoke(hitBlockID);
                 }

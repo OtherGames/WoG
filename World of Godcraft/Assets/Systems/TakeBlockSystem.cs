@@ -54,7 +54,7 @@ sealed class TakeBlockSystem : IEcsRunSystem
         var e = world.NewEntity();
         pool.Add(e);
         ref var item = ref pool.Get(e);
-        item.itemType = ItemType.Block;
+        item.itemType = component.itemType;
         item.blockID = component.blockID;
         item.view = component.view;
         item.count++;

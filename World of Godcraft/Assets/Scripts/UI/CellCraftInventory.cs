@@ -14,7 +14,6 @@ public class CellCraftInventory : MonoBehaviour, IPointerDownHandler, IPointerEn
     public Action<int> onItemClick;
 
     public int? EntityItem { get; set; }
-    public bool IsPointerEntered { get; set; }
 
     internal void Init(int entity, ref InventoryItem item)
     {
@@ -64,12 +63,12 @@ public class CellCraftInventory : MonoBehaviour, IPointerDownHandler, IPointerEn
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        IsPointerEntered = true;
+        
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        IsPointerEntered = false;
+        
     }
 
 }

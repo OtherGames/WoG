@@ -5,4 +5,5 @@ using UnityEngine;
 public class PrefabsHolder : MonoBehaviour
 {
     public GameObject morkva;
+    public GameObject coal;
 }

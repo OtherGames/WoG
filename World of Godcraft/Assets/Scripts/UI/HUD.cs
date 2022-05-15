@@ -16,6 +16,7 @@ public class HUD : MonoBehaviour
     Inventory inventory;
     [SerializeField] Inventory workbenchSimle;
     [SerializeField] Inventory workbench;
+    [SerializeField] Inventory furnace;
     [SerializeField]
     QuickInventory quickInventory;
 
@@ -30,7 +31,7 @@ public class HUD : MonoBehaviour
     [SerializeField] TMP_Text pickableLabel;
 
     public static bool WriteMode { get; set; }
-    public bool InventoryShowed => inventory.IsShowed || workbenchSimle.IsShowed | workbench.IsShowed;
+    public bool InventoryShowed => inventory.IsShowed || workbenchSimle.IsShowed || workbench.IsShowed || furnace.IsShowed;
 
     PlayerCharacter player;
     GameObject pickable;
@@ -49,6 +50,9 @@ public class HUD : MonoBehaviour
 
         workbench.Init();
         workbench.Hide();
+
+        furnace.Init();
+        furnace.Hide();
 
         quickInventory.Init();
 
@@ -94,6 +98,12 @@ public class HUD : MonoBehaviour
             workbench.Show();
             player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(false);
         }
+
+        if (blockID == 102)
+        {
+            furnace.Show();
+            player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(false);
+        }
     }
 
 
@@ -116,7 +126,7 @@ public class HUD : MonoBehaviour
                 inventory.Hide();
                 player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(true);
             }
-            else if(!workbenchSimle.IsShowed && !workbench.IsShowed)
+            else if(!workbenchSimle.IsShowed && !workbench.IsShowed && !furnace.IsShowed)
             {
                 inventory.Show();
                 player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(false);
@@ -133,11 +143,18 @@ public class HUD : MonoBehaviour
                 workbench.Hide();
                 player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(true);
             }
+
+            if (furnace.IsShowed)
+            {
+                furnace.Hide();
+                player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(true);
+            }
         }
 
         inventory.ScreenScale = transform.lossyScale.x;
         workbenchSimle.ScreenScale = transform.lossyScale.x;
         workbench.ScreenScale = transform.lossyScale.x;
+        furnace.ScreenScale = transform.lossyScale.x;
 
         UpdateIndicators();
         UpdatePickabaleLabel();

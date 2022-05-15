@@ -5,4 +5,5 @@ struct DropedComponent
     public byte BlockID;
     public float lifetime;
     public GameObject view;
+    public ItemType itemType;
 }

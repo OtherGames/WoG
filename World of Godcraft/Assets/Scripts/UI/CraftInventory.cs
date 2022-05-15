@@ -16,9 +16,9 @@ public class CraftInventory : MonoBehaviour
 
     public Action<int> OnItemClicked;
 
-    EcsFilter filter;
-    EcsWorld ecsWorld;
-    CraftedItem craftedItem;
+    protected EcsFilter filter;
+    protected EcsWorld ecsWorld;
+    protected CraftedItem craftedItem;
 
     public void Init()
     {
@@ -33,7 +33,7 @@ public class CraftInventory : MonoBehaviour
         cellResult.onItemClick += CraftResult_Clicked;
     }
 
-    private void Item_Clicked(int entity)
+    protected void Item_Clicked(int entity)
     {
         OnItemClicked?.Invoke(entity);
 
@@ -42,7 +42,7 @@ public class CraftInventory : MonoBehaviour
         cellResult.Clear();
     }
 
-    private void CraftResult_Clicked(int entity)
+    protected void CraftResult_Clicked(int entity)
     {
         RemoveUsedItem();
         OnItemClicked?.Invoke(entity);
@@ -51,7 +51,7 @@ public class CraftInventory : MonoBehaviour
     }
 
     // TODO
-    private void RemoveUsedItem()
+    protected void RemoveUsedItem()
     {
         foreach (var c in cells)
         {
@@ -74,13 +74,13 @@ public class CraftInventory : MonoBehaviour
         }
     }
 
-    private void CraftItem_Seted()
+    protected void CraftItem_Seted()
     {
         AddCraftItemTag();
         Crafting();
     }
 
-    private void Crafting()
+    protected virtual void Crafting()
     {
         var craft = Service<Craft>.Get();
 
@@ -138,7 +138,7 @@ public class CraftInventory : MonoBehaviour
         }
     }
 
-    private List<byte?> GetCraftSet()
+    protected List<byte?> GetCraftSet()
     {
         List<byte?> set = new();
         for (int i = 0; i < cells.Count; i++)
@@ -162,7 +162,7 @@ public class CraftInventory : MonoBehaviour
         return set;
     }
 
-    private void AddCraftItemTag()
+    protected void AddCraftItemTag()
     {
         var filterNoneCraft = ecsWorld.Filter<InventoryItem>().Exc<ItemCraftInventory>().End();
         foreach (var entity in filterNoneCraft)
@@ -176,7 +176,7 @@ public class CraftInventory : MonoBehaviour
         }
     }
 
-    private void ClearCraftedItem()
+    protected void ClearCraftedItem()
     {
         if (craftedItem != null)
         {
@@ -198,11 +198,6 @@ public class CraftInventory : MonoBehaviour
     {
         if (cellResult.EntityItem == null)
             Crafting();
-    }
-
-    public CellCraftInventory GetEnteredCell()
-    {
-        return cells.Find(c => c.IsPointerEntered);
     }
 
     public class CraftedItem

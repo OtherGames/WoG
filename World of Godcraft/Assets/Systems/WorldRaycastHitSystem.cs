@@ -24,8 +24,6 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
     {
         var world = systems.GetWorld();
 
-        var chunckFilter = world.Filter<ChunckComponent>().End();
-
         if (hitFilter.GetEntitiesCount() == 0)
         {
             hitTimer = 0;
@@ -51,7 +49,7 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
                 countHit++;
                 hitTimer = 0;
 
-                Debug.Log(countHit);
+                //Debug.Log(countHit);
             }
 
             if (countHit > 8)
@@ -132,7 +130,7 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
         }
 
         var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
-        var dropedBlock = new GameObject("Droped Block " + x + y + z);
+        var dropedBlock = new GameObject("Droped Block - " + id);
         dropedBlock.AddComponent<MeshRenderer>().material = Object.FindObjectOfType<WorldOfGodcraft>().mat;
         dropedBlock.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMesh(id);
         dropedBlock.AddComponent<DropedBlock>();
@@ -150,6 +148,9 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
         ref var component = ref pool.Get(entity);
         component.BlockID = id;
         component.view = dropedBlock;
+        component.itemType = ItemType.Block;
+
+        world.GetPool<DropedCreated>().Add(entity);
     }
 
 }
