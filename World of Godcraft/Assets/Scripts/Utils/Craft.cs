@@ -56,13 +56,26 @@ public class Craft
     // id блока/предмета и время горения
     public Dictionary<byte, byte> setsCombustible = new()
     {
-        { 8,  39 },
-        { 11, 10 },
+        {  8,  39 },
+        {  11, 10 },
+        { 166, 60 },
     };
 
     // id блока/предмета и время обработки огнем
-    public Dictionary<byte, byte> setsFurnaceable = new()
+    public Dictionary<byte, Furnaceable> setsFurnaceable = new()
     {
-
+        { 30, new(50, ITEMS.INGOT_IRON) },
     };
+
+    public struct Furnaceable
+    {
+        public int fireTime;
+        public byte itemID;
+
+        public Furnaceable(int ft, byte id)
+        {
+            fireTime = ft;
+            itemID = id;
+        }
+    }
 }

@@ -4,6 +4,15 @@ using UnityEngine;
 
 public static class ITEMS 
 {
-    public const int MORKVA = 170;
-    public const int COAL   = 166;
+    public const byte MORKVA = 170;
+    public const byte COAL   = 166;
+    public const byte INGOT_IRON = 165;
+
+    public static bool IsCombustible(byte id)
+    {
+        if (id == COAL || id == 8 | id == 11 | id == 100)
+            return true;
+        else
+            return false;
+    }
 }

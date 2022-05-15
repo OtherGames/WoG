@@ -20,7 +20,7 @@ public class CraftInventory : MonoBehaviour
     protected EcsWorld ecsWorld;
     protected CraftedItem craftedItem;
 
-    public void Init()
+    public virtual void Init()
     {
         ecsWorld = FindObjectOfType<WorldOfGodcraft>().EcsWorld;
         filter = ecsWorld.Filter<InventoryItem>().End();
@@ -51,7 +51,7 @@ public class CraftInventory : MonoBehaviour
     }
 
     // TODO
-    protected void RemoveUsedItem()
+    protected virtual void RemoveUsedItem()
     {
         foreach (var c in cells)
         {
@@ -176,7 +176,7 @@ public class CraftInventory : MonoBehaviour
         }
     }
 
-    protected void ClearCraftedItem()
+    protected virtual void ClearCraftedItem()
     {
         if (craftedItem != null)
         {

@@ -6,4 +6,5 @@ public class PrefabsHolder : MonoBehaviour
 {
     public GameObject morkva;
     public GameObject coal;
+    public GameObject ingotIron;
 }

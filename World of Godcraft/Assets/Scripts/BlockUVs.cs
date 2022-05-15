@@ -62,13 +62,15 @@ public class BlockUVS
             case 7:
                 return new BlockUVS(4, 2);
             case 8:// Бревно
-                return new BlockUVS(4, 14);
+                return new BlockUVS(5, 14, 4, 14);
             case 9:
                 return new BlockUVS(0, 2);
             case 10:
                 return new BlockUVS(5, 12);
             case 11:// Доски
                 return new BlockUVS(4, 15);
+            case 30:// Железная руда
+                return new BlockUVS(1, 13);
             case 100:// Простой верстак
                 return new BlockUVS(15, 0);
             case 101:// Верстак

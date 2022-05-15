@@ -24,7 +24,7 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
 
         item.view.transform.SetParent(objectHolder, false);
         item.view.transform.localPosition = Vector3.zero;
-        item.view.transform.localRotation = Quaternion.identity;
+        item.view.transform.localRotation = Quaternion.Euler(item.rotation);
 
         item.view.SetActive(true);
         item.view.layer = 5;
