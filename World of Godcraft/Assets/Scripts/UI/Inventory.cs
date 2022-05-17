@@ -86,7 +86,7 @@ public class Inventory : MonoBehaviour
 
         gameObject.SetActive(true);
 
-        craftInventory.UpdateInventory(blockPos);
+        craftInventory.OnShow(blockPos);
         UpdateInventory();
     }
 

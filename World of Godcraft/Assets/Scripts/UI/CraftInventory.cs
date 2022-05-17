@@ -177,7 +177,7 @@ public class CraftInventory : MonoBehaviour
         }
     }
 
-    public virtual void UpdateInventory(Vector3Int posBlock)
+    public virtual void OnShow(Vector3Int posBlock)
     {
         this.posBlock = posBlock;
     }

@@ -57,12 +57,62 @@ public class FurnaceInventory : CraftInventory
                 }
             }
         }
-
     }
 
-    public override void UpdateInventory(Vector3Int posBlock)
+    private void Update()
     {
-        base.UpdateInventory(posBlock);
+        int e = GetEntityFurnace();
+        if (e < 0)
+            return;
+
+        ref var furnace = ref poolFurnaces.Get(e);
+
+        if(furnace.combustible != null)
+        {
+            var item = furnace.combustible.Value;
+            cellCombustible.UpdateItem(ref item);
+        }
+        else if(cellCombustible.EntityItem != null)
+        {
+            ecsWorld.DelEntity(cellCombustible.EntityItem.Value);
+            cellCombustible.Clear();
+        }
+
+        if (furnace.furnaceable != null)
+        {
+            var item = furnace.furnaceable.Value;
+            cellFurnaceable.UpdateItem(ref item);
+        }
+        else if (cellFurnaceable.EntityItem != null)
+        {
+            ecsWorld.DelEntity(cellFurnaceable.EntityItem.Value);
+            cellFurnaceable.Clear();
+        }
+
+        if (furnace.craftResult != null)
+        {
+            var crafted = furnace.craftResult.Value;
+            if (CellResult.EntityItem == null)
+            {
+                var entityResult = ecsWorld.NewEntity();
+                ref var item = ref poolItems.Add(entityResult);
+                item = furnace.craftResult.Value;
+                CellResult.Init(entityResult, ref item);
+            }
+            
+            CellResult.UpdateItem(ref crafted);
+        }
+        else if (CellResult.EntityItem != null)
+        {
+            ecsWorld.DelEntity(CellResult.EntityItem.Value);
+            CellResult.Clear();
+        }
+    }
+
+
+    public override void OnShow(Vector3Int posBlock)
+    {
+        base.OnShow(posBlock);
 
         int e = GetEntityFurnace();
 
@@ -91,6 +141,18 @@ public class FurnaceInventory : CraftInventory
 
             cellFurnaceable.Init(entityFurnaceable, ref itemFurnaceable);
         }
+
+        if (furnace.craftResult != null)
+        {
+            var entityResult = ecsWorld.NewEntity();
+            ref var itemResult = ref poolItems.Add(entityResult);
+            itemResult = furnace.craftResult.Value;
+            itemResult.view.SetActive(true);
+            poolStandalone.Add(entityResult);
+            furnace.craftResult = itemResult;
+
+            CellResult.Init(entityResult, ref itemResult);
+        }
     }
 
     public override void OnHide()
@@ -103,10 +165,6 @@ public class FurnaceInventory : CraftInventory
 
         ref var furnace = ref poolFurnaces.Get(e);
 
-        //ref var itemCombustible = ref poolItems.Get(cellCombustible.EntityItem.Value);
-        //ref var itemFurnaceable = ref poolItems.Get(cellFurnaceable.EntityItem.Value);
-        //furnace.combustible = itemCombustible;
-        //furnace.furnaceable = itemFurnaceable;
         if (cellCombustible.EntityItem != null)
         {
             ecsWorld.DelEntity(cellCombustible.EntityItem.Value);
@@ -118,6 +176,13 @@ public class FurnaceInventory : CraftInventory
             ecsWorld.DelEntity(cellFurnaceable.EntityItem.Value);
             furnace.furnaceable.Value.view.SetActive(false);
             cellFurnaceable.Clear();
+        }
+
+        if (CellResult.EntityItem != null)
+        {
+            ecsWorld.DelEntity(CellResult.EntityItem.Value);
+            furnace.craftResult.Value.view.SetActive(false);
+            CellResult.Clear();
         }
     }
 
@@ -143,27 +208,5 @@ public class FurnaceInventory : CraftInventory
         
     }
     
-    void CreateItem(byte id)
-    {
-        if(id == ITEMS.INGOT_IRON)
-        {
-            var ingot = Instantiate(prefabs.ingotIron);
-            ingot.layer = 5;
-            ingot.transform.localScale = Vector3.one * 0.7f;
-
-            var entity = ecsWorld.NewEntity();
-            var pool = ecsWorld.GetPool<InventoryItem>();
-            pool.Add(entity);
-            ref var component = ref pool.Get(entity);
-            component.blockID = id;
-            component.view = ingot;
-            component.count = 1;
-            component.itemType = ItemType.Item;
-            component.rotation = new (1.327f, 95.58f, -33.715f);
-
-            CellResult.Init(entity, ref component);
-
-            craftedItem = new() { entity = entity, view = ingot };
-        }
-    }
+    
 }

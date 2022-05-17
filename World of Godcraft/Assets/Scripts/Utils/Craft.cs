@@ -58,13 +58,13 @@ public class Craft
     {
         {  8,  39 },
         {  11, 10 },
-        { 166, 60 },
+        { ITEMS.COAL, 10 },
     };
 
     // id блока/предмета и время обработки огнем
     public Dictionary<byte, Furnaceable> setsFurnaceable = new()
     {
-        { 30, new(50, ITEMS.INGOT_IRON) },
+        { 30, new(5, ITEMS.INGOT_IRON) },
     };
 
     public struct Furnaceable

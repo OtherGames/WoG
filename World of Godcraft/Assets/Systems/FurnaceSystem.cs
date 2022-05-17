@@ -5,6 +5,8 @@ using UnityEngine;
 
 sealed class FurnaceSystem : IEcsRunSystem
 {
+    [EcsWorld]
+    EcsWorld ecsWorld = default;
     [EcsFilter(typeof(FurnaceComponent))]
     EcsFilter filterFurnace = default;
     [EcsPool]
@@ -35,15 +37,77 @@ sealed class FurnaceSystem : IEcsRunSystem
 
             if (furnace.firing)
             {
+                // Горение топлива
                 furnace.firingTime += Time.deltaTime;
-
-                Debug.Log("горит сцуко " + (furnace.combustionTime - furnace.firingTime));
 
                 if (furnace.firingTime > furnace.combustionTime)
                 {
-                    Debug.Log("сгорело");
+                    var combustible = furnace.combustible.Value;
+                    combustible.count--;
+                    if(combustible.count == 0)
+                    {
+                        Object.Destroy(combustible.view);
+                        furnace.combustible = null;
+                    }
+                    else
+                    {
+                        furnace.combustible = combustible;
+                    }
+
                     furnace.firing = false;
                     furnace.firingTime = 0;
+                }
+                // Обжиг предмета
+                if (!furnace.burning)
+                    return;
+
+                furnace.burningTime += Time.deltaTime;
+
+                if (furnace.burningTime > furnace.result.fireTime)
+                {
+                    furnace.burning = false;
+
+                    if (furnace.craftResult == null)
+                    {
+                        if (furnace.result.itemID == ITEMS.INGOT_IRON)
+                        {
+                            var ingot = Object.Instantiate(prefabs.ingotIron);
+                            ingot.layer = 5;
+                            ingot.transform.localScale = Vector3.one * 0.7f;
+
+                            InventoryItem item;
+                            item.blockID = furnace.result.itemID;
+                            item.view = ingot;
+                            item.count = 1;
+                            item.itemType = ItemType.Item;
+                            item.rotation = new(1.327f, 95.58f, -33.715f);
+                            furnace.craftResult = item;
+                        }
+                    }
+                    else
+                    {
+                        var item = furnace.craftResult.Value;
+                        item.count++;
+                        furnace.craftResult = item;
+                    }
+
+                    if (furnace.furnaceable != null)
+                    {
+                        var furnaceable = furnace.furnaceable.Value;
+                        furnaceable.count--;
+                        if (furnaceable.count == 0)
+                        {
+                            Object.Destroy(furnaceable.view);
+                            furnace.furnaceable = null;
+                        }
+                        else
+                        {
+                            furnace.furnaceable = furnaceable;
+                            furnace.burning = true;
+                        }
+                    }
+
+                    furnace.burningTime = 0;
                 }
             }
         }
@@ -56,6 +120,9 @@ sealed class FurnaceSystem : IEcsRunSystem
             float? fireTime = null;
 
             ref var furnace = ref poolFurnace.Get(entity);
+
+            if (furnace.firing)
+                continue;
 
             if (furnace.combustible != null)
             {
@@ -73,6 +140,7 @@ sealed class FurnaceSystem : IEcsRunSystem
                     var result = craft.setsFurnaceable[furnace.furnaceable.Value.blockID];
 
                     furnace.firing = true;
+                    furnace.burning = true;
                     furnace.result = result;
                 }
             }
