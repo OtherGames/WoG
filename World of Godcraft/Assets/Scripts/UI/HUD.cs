@@ -6,6 +6,7 @@ using UnityStandardAssets.Characters.FirstPerson;
 using System;
 using Leopotam.EcsLite;
 using TMPro;
+using LeopotamGroup.Globals;
 
 public class HUD : MonoBehaviour
 {
@@ -82,26 +83,26 @@ public class HUD : MonoBehaviour
         //canvasInventory.worldCamera = FindObjectOfType<PlayerCharacter>().uiCamera;
     }
 
-    private void InteractableBlock_Hit(byte blockID)
+    private void InteractableBlock_Hit(byte blockID, Vector3Int blockPos)
     {
         if (!player)
             player = FindObjectOfType<PlayerCharacter>();
 
         if (blockID == 100)
         {
-            workbenchSimle.Show();
+            workbenchSimle.Show(blockPos);
             player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(false);
         }
 
         if (blockID == 101)
         {
-            workbench.Show();
+            workbench.Show(blockPos);
             player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(false);
         }
 
-        if (blockID == 102)
+        if (blockID == BLOCKS.FURNACE)
         {
-            furnace.Show();
+            furnace.Show(blockPos);
             player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(false);
         }
     }
@@ -109,6 +110,8 @@ public class HUD : MonoBehaviour
 
     private void Update()
     {
+        TESOEBIR();
+
         if (Input.GetKeyDown(KeyCode.R))
         {
             WriteMode = !WriteMode;
@@ -128,7 +131,7 @@ public class HUD : MonoBehaviour
             }
             else if(!workbenchSimle.IsShowed && !workbench.IsShowed && !furnace.IsShowed)
             {
-                inventory.Show();
+                inventory.Show(default);
                 player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(false);
             }
 
@@ -197,5 +200,36 @@ public class HUD : MonoBehaviour
     private void Pickable_Hited(GameObject view)
     {
         pickable = view;
+    }
+
+    private void TESOEBIR()
+    {
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            byte ID = BLOCKS.FURNACE;
+            var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
+            var dropedBlock = new GameObject("Droped Block");
+            dropedBlock.AddComponent<MeshRenderer>().material = FindObjectOfType<WorldOfGodcraft>().mat;
+            dropedBlock.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMesh(ID);
+            dropedBlock.AddComponent<DropedBlock>();
+            dropedBlock.transform.localScale /= 3f;
+            dropedBlock.layer = 5;
+
+            var entity = ecsWorld.NewEntity();
+            var pool = ecsWorld.GetPool<InventoryItem>();
+            pool.Add(entity);
+            ref var component = ref pool.Get(entity);
+            component.blockID = ID;
+            component.view = dropedBlock;
+            component.count = 1;
+            component.itemType = ItemType.Block;
+
+            ecsWorld.GetPool<ItemQuickInventory>().Add(entity);
+
+            var quick = FindObjectOfType<QuickInventory>();
+            var cell = quick.Cells.Find(c => c.EntityItem == null);
+            cell.Init(entity, ref component);
+            quick.UpdateItems();
+        }
     }
 }

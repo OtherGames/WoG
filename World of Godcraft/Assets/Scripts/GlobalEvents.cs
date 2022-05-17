@@ -18,7 +18,7 @@ public class GlobalEvents
 
     //-----------------------------------------------------------------------
 
-    public class InteractBlockHited : UnityEvent<byte> { }
+    public class InteractBlockHited : UnityEvent<byte, Vector3Int> { }
 
     public static InteractBlockHited interactBlockHited = new();
 

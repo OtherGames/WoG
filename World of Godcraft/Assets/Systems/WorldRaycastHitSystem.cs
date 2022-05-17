@@ -111,7 +111,17 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
         }
 
         if (hit.blockId == 0)
+        {
             CreateDropedBlock(blockID, x + pos.x, y + pos.y, z + pos.z);
+        }
+        else
+        {
+            var e = world.NewEntity();
+            ref var placed = ref world.GetPool<BlockPlaced>().Add(e);
+            placed.pos = new Vector3Int(x, y, z);
+            placed.ID = hit.blockId;
+        }
+
     }
 
     bool IsBlockChunk(int x, int y, int z)

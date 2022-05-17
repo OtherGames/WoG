@@ -23,6 +23,7 @@ public class World
 
 		return ref chuncks[xIdx, 0, zIdx];
 	}
+
 	// При доработке генерации
 	public World()
     {

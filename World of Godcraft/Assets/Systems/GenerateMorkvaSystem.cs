@@ -71,7 +71,7 @@ sealed class GenerateMorkvaSystem : IEcsRunSystem
                 continue;
             }
 
-            Debug.Log(component.chunck.pos);
+            //Debug.Log(component.chunck.pos);
             var x = component.chunck.pos.x + xRandomIdx - Random.Range(0.1f, 0.9f);
             var z = component.chunck.pos.z + zRandomIdx + Random.Range(0.1f, 0.9f);
             var y = yIdx + Random.Range(0.73f, 0.9f);

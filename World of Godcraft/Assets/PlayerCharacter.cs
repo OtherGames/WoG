@@ -137,7 +137,7 @@ public class PlayerCharacter : MonoBehaviour
 
                 if (hitBlockID == 100 || hitBlockID == 101 || hitBlockID == 102)
                 {
-                    GlobalEvents.interactBlockHited.Invoke(hitBlockID);
+                    GlobalEvents.interactBlockHited.Invoke(hitBlockID, new(x + 1, y, z));
                 }
                 else
                 {

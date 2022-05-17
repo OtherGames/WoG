@@ -1,3 +1,4 @@
+using LeopotamGroup.Globals;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite;
 using UnityEngine;

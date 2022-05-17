@@ -48,6 +48,8 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new SatietySystem())
             .Add(new TakeItemSystem())
             .Add(new UsingFoodSystem())
+            .Add(new PlacedFurnaceSystem())
+            .Add(new FurnaceSystem())
 
 
             // register additional worlds here, for example:
@@ -64,6 +66,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .DelHere<BlockTaked>()
             .DelHere<ItemTaked>()
             .DelHere<ItemUsed>()
+            .DelHere<BlockPlaced>()
 
 
             .Inject(world)

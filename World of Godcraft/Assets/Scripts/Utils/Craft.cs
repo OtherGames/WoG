@@ -54,7 +54,7 @@ public class Craft
     };
 
     // id блока/предмета и время горения
-    public Dictionary<byte, byte> setsCombustible = new()
+    public Dictionary<byte, float> setsCombustible = new()
     {
         {  8,  39 },
         {  11, 10 },

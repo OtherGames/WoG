@@ -33,7 +33,7 @@ public class Inventory : MonoBehaviour
     {
         ecsWorld = FindObjectOfType<WorldOfGodcraft>().EcsWorld;
 
-        filter = ecsWorld.Filter<InventoryItem>().Exc<ItemQuickInventory>().Exc<ItemCraftInventory>().End();
+        filter = ecsWorld.Filter<InventoryItem>().Exc<ItemQuickInventory>().Exc<ItemCraftInventory>().Exc<StandaloneInventory>().End();
         filterItems = ecsWorld.Filter<InventoryItem>().End();
         poolItems = ecsWorld.GetPool<InventoryItem>();
 
@@ -58,7 +58,7 @@ public class Inventory : MonoBehaviour
         UpdateInventory();
     }
 
-    private void UpdateInventory()
+    public void UpdateInventory()
     {
         int idx = 0;
         foreach (var entity in filter)
@@ -78,7 +78,7 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    public void Show()
+    public void Show(Vector3Int blockPos)
     {
         quickInventory.onItemClicked += ItemClicked;
 
@@ -86,12 +86,14 @@ public class Inventory : MonoBehaviour
 
         gameObject.SetActive(true);
 
+        craftInventory.UpdateInventory(blockPos);
         UpdateInventory();
     }
 
     public void Hide()
     {
         quickInventory.onItemClicked -= ItemClicked;
+        craftInventory.OnHide();
 
         IsShowed = false;
 
@@ -360,6 +362,8 @@ public class Inventory : MonoBehaviour
             }
         }
     }
+
+    
 }
 
 public class DragItem

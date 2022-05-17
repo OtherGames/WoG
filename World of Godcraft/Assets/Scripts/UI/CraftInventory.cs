@@ -19,6 +19,7 @@ public class CraftInventory : MonoBehaviour
     protected EcsFilter filter;
     protected EcsWorld ecsWorld;
     protected CraftedItem craftedItem;
+    protected Vector3Int posBlock;
 
     public virtual void Init()
     {
@@ -74,7 +75,7 @@ public class CraftInventory : MonoBehaviour
         }
     }
 
-    protected void CraftItem_Seted()
+    protected virtual void CraftItem_Seted()
     {
         AddCraftItemTag();
         Crafting();
@@ -174,6 +175,16 @@ public class CraftInventory : MonoBehaviour
                 return;
             }
         }
+    }
+
+    public virtual void UpdateInventory(Vector3Int posBlock)
+    {
+        this.posBlock = posBlock;
+    }
+
+    public virtual void OnHide()
+    {
+
     }
 
     protected virtual void ClearCraftedItem()
