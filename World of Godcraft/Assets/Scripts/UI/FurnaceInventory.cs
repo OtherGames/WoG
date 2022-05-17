@@ -2,6 +2,7 @@ using Leopotam.EcsLite;
 using LeopotamGroup.Globals;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 using UnityEngine;
 
 public class FurnaceInventory : CraftInventory
@@ -10,7 +11,10 @@ public class FurnaceInventory : CraftInventory
 
     [SerializeField] CellCraftInventory cellCombustible;
     [SerializeField] CellCraftInventory cellFurnaceable;
-    
+
+    [SerializeField] Image fire;
+    [SerializeField] Image arrow;
+
     Craft craft;
     PrefabsHolder prefabs;
 
@@ -106,6 +110,20 @@ public class FurnaceInventory : CraftInventory
         {
             ecsWorld.DelEntity(CellResult.EntityItem.Value);
             CellResult.Clear();
+        }
+
+        if (furnace.firing)
+        {
+            fire.fillAmount = 1 - (furnace.firingTime / furnace.combustionTime);
+            if (furnace.burning)
+            {
+                arrow.fillAmount = furnace.burningTime / (float)furnace.result.fireTime;
+            }
+        }
+        else
+        {
+            fire.fillAmount = 0;
+            arrow.fillAmount = 0;
         }
     }
 
