@@ -43,7 +43,7 @@ public class CraftInventory : MonoBehaviour
         cellResult.Clear();
     }
 
-    protected void CraftResult_Clicked(int entity)
+    protected virtual void CraftResult_Clicked(int entity)
     {
         RemoveUsedItem();
         OnItemClicked?.Invoke(entity);
@@ -115,27 +115,37 @@ public class CraftInventory : MonoBehaviour
         if (craftableSet != null)
         {
             var result = craft.sets[craftableSet];
-            print("======================");
-            var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
-            var dropedBlock = new GameObject("Droped Block");
-            dropedBlock.AddComponent<MeshRenderer>().material = FindObjectOfType<WorldOfGodcraft>().mat;
-            dropedBlock.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMesh(result.Item1);
-            dropedBlock.AddComponent<DropedBlock>();
-            dropedBlock.transform.localScale /= 3f;
-            dropedBlock.layer = 5;
+            //print("======================");
+            GameObject view;
+            if (result.Item3 == ItemType.Block)
+            {
+                var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
+                var dropedBlock = new GameObject("Droped Block");
+                dropedBlock.AddComponent<MeshRenderer>().material = FindObjectOfType<WorldOfGodcraft>().mat;
+                dropedBlock.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMesh(result.Item1);
+                dropedBlock.AddComponent<DropedBlock>();
+                dropedBlock.transform.localScale /= 3f;
+                dropedBlock.layer = 5;
+                view = dropedBlock;
+            }
+            else
+            {
+                var prefab = Service<PrefabsHolder>.Get().Get(result.Item1);
+                view = Instantiate(prefab);
+            }
 
             var entity = ecsWorld.NewEntity();
             var pool = ecsWorld.GetPool<InventoryItem>();
             pool.Add(entity);
             ref var component = ref pool.Get(entity);
             component.blockID = result.Item1;
-            component.view = dropedBlock;
+            component.view = view;
             component.count = result.Item2;
-            component.itemType = ItemType.Block;
+            component.itemType = result.Item3;
 
             cellResult.Init(entity, ref component);
 
-            craftedItem = new() { entity = entity, view = dropedBlock };
+            craftedItem = new() { entity = entity, view = view };
         }
     }
 

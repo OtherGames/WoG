@@ -118,7 +118,11 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
         {
             var e = world.NewEntity();
             ref var placed = ref world.GetPool<BlockPlaced>().Add(e);
-            placed.pos = new Vector3Int(x, y, z);
+            var xGlobal = Mathf.FloorToInt(x + pos.x);
+            var yGlobal = Mathf.FloorToInt(y + pos.y);
+            var zGlobal = Mathf.FloorToInt(z + pos.z);
+
+            placed.pos = new Vector3Int(xGlobal, yGlobal, zGlobal);
             placed.ID = hit.blockId;
         }
 

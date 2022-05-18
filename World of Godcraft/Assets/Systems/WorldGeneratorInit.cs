@@ -430,9 +430,9 @@ sealed class WorldGeneratorInit : IEcsInitSystem
 
         float coalValue = SimplexNoise.Noise.Generate(noiseX, noiseY, noiseZ);
 
-        if (coalValue > 0.93f && (noiseValue > landThresold))
+        if (coalValue > 0.92f && (noiseValue > landThresold))
         {
-            blockID = 6;
+            blockID = BLOCKS.ORE_COAL;
         }
         // ==========================================
 
@@ -450,6 +450,40 @@ sealed class WorldGeneratorInit : IEcsInitSystem
         if (oreValue > 0.93f && (noiseValue > landThresold))
         {
             blockID = 30;
+        }
+        // ==========================================
+
+        // =========== Селитра руда ========================
+        k = 635;
+
+        offset = new(Random.value * k, Random.value * k, Random.value * k);
+
+        noiseX = Mathf.Abs((float)(x + offset.x) / (noiseScale / 9));
+        noiseY = Mathf.Abs((float)(y + offset.y) / (noiseScale / 9));
+        noiseZ = Mathf.Abs((float)(z + offset.z) / (noiseScale / 9));
+
+        float saltpeterValue = SimplexNoise.Noise.Generate(noiseX, noiseY, noiseZ);
+
+        if (saltpeterValue > 0.935f && (noiseValue > landThresold))
+        {
+            blockID = BLOCKS.SALTPETER;
+        }
+        // ==========================================
+
+        // =========== Сера ========================
+        k = 364789;
+
+        offset = new(Random.value * k, Random.value * k, Random.value * k);
+
+        noiseX = Mathf.Abs((float)(x + offset.x) / (noiseScale / 9));
+        noiseY = Mathf.Abs((float)(y + offset.y) / (noiseScale / 9));
+        noiseZ = Mathf.Abs((float)(z + offset.z) / (noiseScale / 9));
+
+        float sulfurValue = SimplexNoise.Noise.Generate(noiseX, noiseY, noiseZ);
+
+        if (sulfurValue > 0.93f && (noiseValue > landThresold))
+        {
+            blockID = BLOCKS.ORE_SULFUR;
         }
         // ==========================================
 

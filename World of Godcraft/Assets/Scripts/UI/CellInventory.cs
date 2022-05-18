@@ -5,7 +5,7 @@ using UnityEngine;
 using System;
 using TMPro;
 
-public class CellInventory : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
+public class CellInventory : MonoBehaviour, IPointerDownHandler
 {
     [SerializeField] Transform objectHolder;
     [SerializeField] public TMP_Text labelCount;
@@ -51,6 +51,7 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
     internal void UpdateItem(ref InventoryItem item)
     {
         labelCount.text = item.count > 1 ? $"x{item.count}" : "";
+        print("&&&&&&&&&&");
     }
 
     public void Clear()
@@ -68,13 +69,4 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
         }
     }
 
-    public virtual void OnPointerEnter(PointerEventData eventData)
-    {
-        //IsPointerEntered = true;
-    }
-
-    public virtual void OnPointerExit(PointerEventData eventData)
-    {
-        //IsPointerEntered = false;
-    }
 }

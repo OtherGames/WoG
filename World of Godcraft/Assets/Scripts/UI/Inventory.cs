@@ -182,6 +182,23 @@ public class Inventory : MonoBehaviour
 
         if (!found)
         {
+            foreach (var entity in ecsWorld.Filter<InventoryItem>().Inc<ItemQuickInventory>().End())
+            {
+                ref var component = ref poolItems.Get(entity);
+
+                if (component.blockID == dragComponent.blockID)
+                {
+                    found = true;
+
+                    component.count += dragComponent.count;
+                    Destroy(dragItem.view);
+                    ecsWorld.DelEntity(dragItem.entity);
+                }
+            }
+        }
+
+        if (!found)
+        {
             cell.SetItem(dragItem);
         }
 
@@ -197,6 +214,9 @@ public class Inventory : MonoBehaviour
 
             UpdateInventory();
             CheckEmptyCell();
+
+            quickInventory.UpdateItems();
+            quickInventory.CheckEmptyCell();
         }
     }
 
@@ -314,26 +334,20 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    private DragItem CreateSplitItem(byte blockID)
+    private DragItem CreateSplitItem(byte id)
     {
-        var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
-        var dropedBlock = new GameObject("Droped Block");
-        dropedBlock.AddComponent<MeshRenderer>().material = FindObjectOfType<WorldOfGodcraft>().mat;
-        dropedBlock.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMesh(blockID);
-        dropedBlock.AddComponent<DropedBlock>();
-        dropedBlock.transform.localScale /= 3f;
-        dropedBlock.layer = 5;
+        GameObject view = Instantiate(dragItem.view);
 
         var entity = ecsWorld.NewEntity();
         var pool = ecsWorld.GetPool<InventoryItem>();
         pool.Add(entity);
         ref var component = ref pool.Get(entity);
-        component.blockID = blockID;
-        component.view = dropedBlock;
+        component.blockID = id;
+        component.view = view;
         component.count = 1;
         component.itemType = ItemType.Block;
 
-        return new() { view = dropedBlock, entity = entity, count = component.count };
+        return new() { view = view, entity = entity, count = component.count };
     }
 
     // HOT FIX

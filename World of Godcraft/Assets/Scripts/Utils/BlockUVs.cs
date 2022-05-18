@@ -71,6 +71,10 @@ public class BlockUVS
                 return new BlockUVS(4, 15);
             case 30:// Железная руда
                 return new BlockUVS(1, 13);
+            case 31:// Селитра
+                return new BlockUVS(15, 1);
+            case 32:// Сера
+                return new BlockUVS(15, 2);
             case 100:// Простой верстак
                 return new BlockUVS(15, 0);
             case 101:// Верстак

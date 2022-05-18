@@ -19,20 +19,35 @@ sealed class DropCoalSystem : IEcsRunSystem
         {
             ref var droped = ref poolDroped.Get(entity);
 
-            if (droped.BlockID == 6)
+            switch (droped.BlockID)
             {
-                droped.BlockID = ITEMS.COAL;
+                case BLOCKS.ORE_COAL:
+                    Drop(ref droped, prefabs.coal, ITEMS.COAL);
+                    break;
 
-                var pos = droped.view.transform.position;
+                case BLOCKS.SALTPETER:
+                    Drop(ref droped, prefabs.saltpeter, ITEMS.SALTPETER);
+                    break;
 
-                Object.Destroy(droped.view);
-
-                var coal = Object.Instantiate(prefabs.coal, pos, Quaternion.identity);
-                coal.AddComponent<DropedBlock>();
-
-                droped.view = coal;
-                droped.itemType = ItemType.Item;
+                case BLOCKS.ORE_SULFUR:
+                    Drop(ref droped, prefabs.sulfur, ITEMS.SULFUR);
+                    break;
             }
         }
+    }
+
+    void Drop(ref DropedComponent droped, GameObject prefab, byte id)
+    {
+        droped.BlockID = id;
+
+        var pos = droped.view.transform.position;
+
+        Object.Destroy(droped.view);
+
+        var coal = Object.Instantiate(prefab, pos, Quaternion.identity);
+        coal.AddComponent<DropedBlock>();
+
+        droped.view = coal;
+        droped.itemType = ItemType.Item;
     }
 }

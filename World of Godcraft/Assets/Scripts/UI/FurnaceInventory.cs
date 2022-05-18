@@ -20,6 +20,7 @@ public class FurnaceInventory : CraftInventory
 
     EcsPool<InventoryItem> poolItems;
     EcsPool<FurnaceComponent> poolFurnaces;
+    EcsPool<ItemCraftInventory> poolCraftInventory;
     EcsPool<StandaloneInventory> poolStandalone;
     EcsFilter filterFurnace;
 
@@ -30,6 +31,7 @@ public class FurnaceInventory : CraftInventory
         filterFurnace = ecsWorld.Filter<FurnaceComponent>().End();
         poolItems = ecsWorld.GetPool<InventoryItem>();
         poolFurnaces = ecsWorld.GetPool<FurnaceComponent>();
+        poolCraftInventory = ecsWorld.GetPool<ItemCraftInventory>();
         poolStandalone = ecsWorld.GetPool<StandaloneInventory>();
         craft = Service<Craft>.Get();
         prefabs = Service<PrefabsHolder>.Get();
@@ -63,6 +65,14 @@ public class FurnaceInventory : CraftInventory
         }
     }
 
+    protected override void CraftResult_Clicked(int entity)
+    {
+        base.CraftResult_Clicked(entity);
+
+        ref var furnace = ref poolFurnaces.Get(GetEntityFurnace());
+        furnace.craftResult = null;
+    }
+
     private void Update()
     {
         int e = GetEntityFurnace();
@@ -73,7 +83,8 @@ public class FurnaceInventory : CraftInventory
 
         if(furnace.combustible != null)
         {
-            var item = furnace.combustible.Value;
+            ref var item = ref poolItems.Get(cellCombustible.EntityItem.Value);
+            item = furnace.combustible.Value;
             cellCombustible.UpdateItem(ref item);
         }
         else if(cellCombustible.EntityItem != null)
@@ -84,7 +95,8 @@ public class FurnaceInventory : CraftInventory
 
         if (furnace.furnaceable != null)
         {
-            var item = furnace.furnaceable.Value;
+            ref var item = ref poolItems.Get(cellFurnaceable.EntityItem.Value);
+            item = furnace.furnaceable.Value;
             cellFurnaceable.UpdateItem(ref item);
         }
         else if (cellFurnaceable.EntityItem != null)
@@ -95,7 +107,6 @@ public class FurnaceInventory : CraftInventory
 
         if (furnace.craftResult != null)
         {
-            var crafted = furnace.craftResult.Value;
             if (CellResult.EntityItem == null)
             {
                 var entityResult = ecsWorld.NewEntity();
@@ -103,14 +114,18 @@ public class FurnaceInventory : CraftInventory
                 item = furnace.craftResult.Value;
                 CellResult.Init(entityResult, ref item);
             }
-            
-            CellResult.UpdateItem(ref crafted);
+            else
+            {
+                ref var item = ref poolItems.Get(CellResult.EntityItem.Value);
+                item = furnace.craftResult.Value;
+                CellResult.UpdateItem(ref item);
+            }            
         }
-        else if (CellResult.EntityItem != null)
-        {
-            ecsWorld.DelEntity(CellResult.EntityItem.Value);
-            CellResult.Clear();
-        }
+        //else if (CellResult.EntityItem != null)
+        //{
+        //    ecsWorld.DelEntity(CellResult.EntityItem.Value);
+        //    CellResult.Clear();
+        //}
 
         if (furnace.firing)
         {
@@ -133,7 +148,6 @@ public class FurnaceInventory : CraftInventory
         base.OnShow(posBlock);
 
         int e = GetEntityFurnace();
-
         ref var furnace = ref poolFurnaces.Get(e);
 
         if (furnace.combustible != null)
@@ -167,9 +181,12 @@ public class FurnaceInventory : CraftInventory
             itemResult = furnace.craftResult.Value;
             itemResult.view.SetActive(true);
             poolStandalone.Add(entityResult);
+            //poolCraftInventory.Add(entityResult);
             furnace.craftResult = itemResult;
 
             CellResult.Init(entityResult, ref itemResult);
+
+            craftedItem = new() { entity = entityResult, view = itemResult.view };
         }
     }
 
@@ -202,6 +219,8 @@ public class FurnaceInventory : CraftInventory
             furnace.craftResult.Value.view.SetActive(false);
             CellResult.Clear();
         }
+
+        craftedItem = null;
     }
 
     private int GetEntityFurnace()
@@ -211,7 +230,7 @@ public class FurnaceInventory : CraftInventory
         foreach (var e in filterFurnace)
         {
             ref var furnace = ref poolFurnaces.Get(e);
-
+            //print(furnace.pos + " - " + posBlock);
             if (furnace.pos == posBlock)
             {
                 result = e;
@@ -225,6 +244,11 @@ public class FurnaceInventory : CraftInventory
     {
         
     }
-    
-    
+
+    protected override void RemoveUsedItem()
+    {
+        
+    }
+
+
 }

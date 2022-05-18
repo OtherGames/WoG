@@ -40,7 +40,6 @@ sealed class TakeDropedSystem : IEcsRunSystem
                     {
                         component.view.transform.position += (5 / dist) * Time.deltaTime * dir;
                     }
-
                 }
             }
         }

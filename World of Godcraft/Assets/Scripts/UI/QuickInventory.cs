@@ -82,7 +82,7 @@ public class QuickInventory : MonoBehaviour
         }
     }
 
-    private void CheckEmptyCell()
+    public void CheckEmptyCell()
     {
         List<CellInventory> withItems = new();
 

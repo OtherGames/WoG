@@ -4,5 +4,8 @@ using UnityEngine;
 
 public static class BLOCKS 
 {
-    public const int FURNACE = 102;
+    public const byte FURNACE = 102;
+    public const byte SALTPETER = 31;
+    public const byte ORE_SULFUR = 32;
+    public const byte ORE_COAL = 6;
 }

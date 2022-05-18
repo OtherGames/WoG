@@ -9,7 +9,7 @@ struct InventoryItem
     public int count;
 }
 
-internal enum ItemType
+public enum ItemType
 {
     Block,
     Item,
