@@ -33,7 +33,7 @@ sealed class GenerateMorkvaSystem : IEcsRunSystem
 
                 ref var food = ref systems.GetWorld().GetPool<FoodComponent>().Add(e);
                 food.view = morkva;
-                food.id = 170;
+                food.id = ITEMS.MORKVA;
                 food.satietyValue = 10;
                 food.freshMax = 300;
                 food.freshValue = food.freshMax;

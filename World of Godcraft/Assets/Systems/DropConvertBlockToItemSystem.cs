@@ -3,7 +3,7 @@ using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite;
 using UnityEngine;
 
-sealed class DropCoalSystem : IEcsRunSystem
+sealed class DropConvertBlockToItemSystem : IEcsRunSystem
 {
     [EcsPool]
     readonly EcsPool<DropedComponent> poolDroped = default;
@@ -31,6 +31,13 @@ sealed class DropCoalSystem : IEcsRunSystem
 
                 case BLOCKS.ORE_SULFUR:
                     Drop(ref droped, prefabs.sulfur, ITEMS.SULFUR);
+                    break;
+
+                case BLOCKS.GRAVEL:
+                    if(Random.Range(0, 100) < 30)
+                    {
+                        Drop(ref droped, prefabs.silicon, ITEMS.SILICON);
+                    }
                     break;
             }
         }

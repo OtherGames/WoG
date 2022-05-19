@@ -211,6 +211,7 @@ public class CraftInventory : MonoBehaviour
     {
         if(cellResult.EntityItem == entity)
         {
+            ecsWorld.GetPool<StandaloneInventory>().Del(entity);
             cellResult.Clear();
         }
     }

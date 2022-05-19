@@ -40,10 +40,9 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler
     public virtual void SetItem(DragItem dragItem)
     {
         EntityItem = dragItem.entity;
-
+        print(gameObject.name);
         dragItem.view.transform.SetParent(objectHolder, false);
         dragItem.view.transform.localPosition = Vector3.zero;
-        //dragItem.view.transform.localRotation = Quaternion.identity;
 
         OnItemSeted?.Invoke(this);
     }
@@ -51,7 +50,6 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler
     internal void UpdateItem(ref InventoryItem item)
     {
         labelCount.text = item.count > 1 ? $"x{item.count}" : "";
-        print("&&&&&&&&&&");
     }
 
     public void Clear()

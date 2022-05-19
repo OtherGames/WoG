@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using static ITEMS;
 public class Craft
 {
     public Dictionary<byte?[], Tuple<byte, int, ItemType>> sets = new()
@@ -103,6 +103,33 @@ public class Craft
         { new byte?[] { ITEMS.INGOT_IRON, null }, new(ITEMS.IRON_PART, 9, ItemType.Item) },
         { new byte?[] { null, null, null, ITEMS.INGOT_IRON }, new(ITEMS.IRON_PART, 9, ItemType.Item) },
 
+        #endregion
+
+        #region Патрон
+        { new byte?[] { GUNPOWDER, IRON_PART }, new(BULLET, 8, ItemType.Item) },
+        { new byte?[] { GUNPOWDER, IRON_PART, 
+                            null,    null }, new(BULLET, 8, ItemType.Item) },
+        { new byte?[] {   null,      null, 
+                        GUNPOWDER, IRON_PART }, new(BULLET, 8, ItemType.Item) },
+        { new byte?[] { GUNPOWDER, IRON_PART, null,
+                           null,     null,    null,
+                           null,     null,    null}, new(BULLET, 8, ItemType.Item) },
+
+        #endregion
+
+        #region Обойма
+        { new byte?[] { INGOT_IRON, BULLET, INGOT_IRON,
+                        INGOT_IRON, BULLET, INGOT_IRON,
+                        INGOT_IRON, BULLET, INGOT_IRON}, new(MAGAZINE, 1, ItemType.Item) },
+        #endregion
+
+        #region Простой Пистолет
+        {
+            new byte?[] { null, null, INGOT_IRON,
+                        INGOT_IRON, BULLET, INGOT_IRON,
+                        INGOT_IRON, BULLET, INGOT_IRON},
+                        new(MAGAZINE, 1, ItemType.Item)
+        },
         #endregion
     };
 

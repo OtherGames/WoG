@@ -18,6 +18,11 @@ public class PlayerCharacter : MonoBehaviour
     public LayerMask lm;
     public Camera uiCamera;
 
+    [Space]
+
+    [SerializeField] Transform pistolParent;
+    [SerializeField] Transform rootHolder;
+
     Transform highlight;
 
     WorldOfGodcraft godcraft;
@@ -28,9 +33,13 @@ public class PlayerCharacter : MonoBehaviour
     HUD hud;
 
     internal Action<Entity, ChunckHitEvent> onChunkHit;
+    internal Action onSlotUpdate;
 
+    int idxQuickSlot;
     int entityBlockHit;
+    int entitySelectedItem;
     bool isHit;
+    byte? itemID;
 
     // Start is called before the first frame update
     void Start()
@@ -59,13 +68,92 @@ public class PlayerCharacter : MonoBehaviour
         ref var satiety = ref ecsWorld.GetPool<SatietyComponent>().Add(entity);
         satiety.MaxValue = 100;
         satiety.Value = satiety.MaxValue;
+
+        onSlotUpdate += Slot_Updated;
+        itemID = null;
     }
 
     // Update is called once per frame
     void Update()
     {
+        UpdateHolderRotation();
+        CheckQuickSlots();
         BlockController();
         SaveController();
+    }
+
+    void CheckQuickSlots()
+    {
+        if (idxQuickSlot != InputHandler.Instance.quickSlotID - 1)
+        {
+            idxQuickSlot = InputHandler.Instance.quickSlotID - 1;
+            onSlotUpdate?.Invoke();
+        }
+
+        int idx = 0;
+        bool foundItem = false;
+        byte? selectedItem = null;
+        foreach (var entity in filter)
+        {
+            if(idx == idxQuickSlot)
+            {
+                selectedItem = ecsWorld.GetPool<InventoryItem>().Get(entity).blockID;
+                if (itemID == null || itemID != selectedItem)
+                {
+                    itemID = selectedItem;
+                    entitySelectedItem = entity;
+                    foundItem = true;
+                    onSlotUpdate?.Invoke();
+                }
+            }
+
+            idx++;
+        }
+
+        if(!foundItem && itemID != selectedItem)
+        {
+            itemID = null;
+            onSlotUpdate?.Invoke();
+        }
+    }
+
+    void Slot_Updated()
+    {
+        print("слот обновлен " + itemID);
+
+        ClearView();
+
+        if(itemID != null)
+        {
+            ref var item = ref ecsWorld.GetPool<InventoryItem>().Get(entitySelectedItem);
+            var view = Instantiate(item.view);
+            view.SetActive(true);
+            view.layer = 0;
+
+            foreach (var t in view.GetComponentsInChildren<Transform>())
+            {
+                t.gameObject.layer = 0;
+            }
+            view.transform.parent = pistolParent;
+            view.transform.localPosition = Vector3.zero;
+            view.transform.localScale = Vector3.one * 0.5f;
+            view.transform.localRotation = Quaternion.identity;
+            if(item.itemType == ItemType.Block)
+            {
+                view.transform.localScale = Vector3.one * 0.3f;
+            }
+        }
+
+        ref var updated = ref ecsWorld.GetPool<UsedItemUpdated>().Add(ecsWorld.NewEntity());
+        updated.id = itemID;
+    }
+
+    void ClearView()
+    {
+        foreach (Transform item in pistolParent)
+        {
+            Destroy(item.gameObject);
+        }
     }
 
     void BlockController()
@@ -217,6 +305,11 @@ public class PlayerCharacter : MonoBehaviour
             ref var item = ref ecsWorld.GetPool<ItemTaked>().Add(ecsWorld.NewEntity());
             item.view = view;
         }
+    }
+
+    void UpdateHolderRotation()
+    {
+        rootHolder.localRotation = cam.transform.localRotation;
     }
 
     void SaveController()

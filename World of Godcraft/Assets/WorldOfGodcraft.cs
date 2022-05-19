@@ -42,7 +42,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new PlantsGeneratorSystem())
             .Add(new GenerateMorkvaSystem())
             .Add(new DropedLifetimeSystem())
-            .Add(new DropCoalSystem())
+            .Add(new DropConvertBlockToItemSystem())
             .Add(new TakeDropedSystem())
             .Add(new TakeBlockSystem())
             .Add(new SatietySystem())
@@ -50,6 +50,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new UsingFoodSystem())
             .Add(new PlacedFurnaceSystem())
             .Add(new FurnaceSystem())
+            .Add(new UsedItemUpdatedSystem())
 
 
             // register additional worlds here, for example:
@@ -67,7 +68,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .DelHere<ItemTaked>()
             .DelHere<ItemUsed>()
             .DelHere<BlockPlaced>()
-
+            .DelHere<UsedItemUpdated>()
 
             .Inject(world)
             .Init();

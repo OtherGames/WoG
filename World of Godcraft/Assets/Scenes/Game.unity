@@ -627,6 +627,10 @@ MonoBehaviour:
   sulfur: {fileID: 8572045765720791231, guid: 47a1a73956117994e896974f83d18271, type: 3}
   gunpowder: {fileID: 1529600664498590636, guid: f738a78a7dbbd1e4bb8ffab2e04422b2, type: 3}
   ironPart: {fileID: 2557689372471706163, guid: 5690dd223fa91794e9a96424169beed4, type: 3}
+  bullet: {fileID: 5112186254068328142, guid: 1965874dcaa9b1f4999db127eb046f90, type: 3}
+  magazine: {fileID: 1934661243779015955, guid: 41f9165ef6e35d84ab910b63c24eae19, type: 3}
+  silicon: {fileID: 1341500169494111643, guid: a6767b2e1941dd84cbe44e1870b4e2ff, type: 3}
+  simplePistol: {fileID: 1255302251002758906, guid: 9ace5c456ec74754b89c7fc3dfa44a6e, type: 3}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0

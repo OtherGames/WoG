@@ -418,6 +418,22 @@ sealed class WorldGeneratorInit : IEcsInitSystem
         }
         // ==========================================
 
+        // =========== √равий ========================
+        k = 33333;
+
+        offset = new(Random.value * k, Random.value * k, Random.value * k);
+
+        noiseX = Mathf.Abs((float)(x + offset.x) / (noiseScale / 9));
+        noiseY = Mathf.Abs((float)(y + offset.y) / (noiseScale / 9));
+        noiseZ = Mathf.Abs((float)(z + offset.z) / (noiseScale / 9));
+
+        float gravelValue = SimplexNoise.Noise.Generate(noiseX, noiseY, noiseZ);
+
+        if (gravelValue > 0.85f && (noiseValue > landThresold))
+        {
+            blockID = BLOCKS.GRAVEL;
+        }
+        // ==========================================
 
         // =========== ”голь ========================
         k = 10;

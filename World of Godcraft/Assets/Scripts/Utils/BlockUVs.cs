@@ -49,7 +49,7 @@ public class BlockUVS
         {
             case 1:
                 return new BlockUVS(0, 15, 3, 15, 2, 15);
-            case 2:
+            case 2:// Камень
                 return new BlockUVS(1, 15);
             case 3:// Булыжник
                 return new BlockUVS(0, 14);
@@ -65,7 +65,7 @@ public class BlockUVS
                 return new BlockUVS(5, 14, 4, 14);
             case 9:
                 return new BlockUVS(0, 2);
-            case 10:
+            case 10:// Листва
                 return new BlockUVS(5, 12);
             case 11:// Доски
                 return new BlockUVS(4, 15);
@@ -75,6 +75,8 @@ public class BlockUVS
                 return new BlockUVS(15, 1);
             case 32:// Сера
                 return new BlockUVS(15, 2);
+            case 36:// Гравий
+                return new BlockUVS(3, 14);
             case 100:// Простой верстак
                 return new BlockUVS(15, 0);
             case 101:// Верстак

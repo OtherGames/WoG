@@ -1,13 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Events;
-using UnityEngine.UI;
 using UnityEngine;
 using System.Linq;
-using TMPro;
 using Leopotam.EcsLite;
 using UnityEngine.EventSystems;
-using LeopotamGroup.Globals;
+using TMPro;
 
 public class Inventory : MonoBehaviour
 {
@@ -43,6 +40,8 @@ public class Inventory : MonoBehaviour
             cells.Add(cell);
             cell.labelCount.text = "";
             cell.onItemClick += ItemClicked;
+            cell.OnItemSeted += Item_Seted;
+            cell.name = cell.name.Replace("(Clone)", $" {i}");
         }
 
         craftInventory.Init();
@@ -53,6 +52,12 @@ public class Inventory : MonoBehaviour
         dragItem = null;
     }
 
+    private void Item_Seted(CellInventory cell)
+    {
+        UpdateInventory();
+        CheckEmptyCell();
+    }
+
     private void Item_Taked()
     {
         UpdateInventory();
@@ -61,6 +66,7 @@ public class Inventory : MonoBehaviour
     public void UpdateInventory()
     {
         int idx = 0;
+        
         foreach (var entity in filter)
         {
             if (dragItem != null && dragItem.entity == entity)
@@ -132,6 +138,7 @@ public class Inventory : MonoBehaviour
         };
         var raycasts = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointer, raycasts);
+
         foreach (var raycast in raycasts)
         {
             var cell = raycast.gameObject.GetComponent<CellCraftInventory>();
@@ -154,6 +161,24 @@ public class Inventory : MonoBehaviour
                 }
             }
         }
+
+        UpdateInventory();
+        CheckEmptyCell();
+
+        StartCoroutine(Delay());
+
+        // HOT FIX
+        IEnumerator Delay()
+        {
+            yield return null;
+
+            UpdateInventory();
+            CheckEmptyCell();
+
+            quickInventory.UpdateItems();
+            quickInventory.CheckEmptyCell();
+        }
+
         return result;
     }
 
@@ -161,7 +186,7 @@ public class Inventory : MonoBehaviour
     {
         bool found = false;
         ref var dragComponent = ref ecsWorld.GetPool<InventoryItem>().Get(dragItem.entity);
-        
+
         foreach (var entity in filter)
         {
             if (dragItem.entity == entity)
@@ -175,8 +200,7 @@ public class Inventory : MonoBehaviour
 
                 component.count += dragComponent.count;
                 Destroy(dragItem.view);
-                ecsWorld.DelEntity(dragItem.entity);
-                
+                ecsWorld.DelEntity(dragItem.entity);                
             }
         }
 
@@ -202,22 +226,7 @@ public class Inventory : MonoBehaviour
             cell.SetItem(dragItem);
         }
 
-        UpdateInventory();
-        CheckEmptyCell();
-
-        StartCoroutine(Delay());
-
-        // HOT FIX
-        IEnumerator Delay()
-        {
-            yield return null;
-
-            UpdateInventory();
-            CheckEmptyCell();
-
-            quickInventory.UpdateItems();
-            quickInventory.CheckEmptyCell();
-        }
+        
     }
 
 
@@ -312,16 +321,8 @@ public class Inventory : MonoBehaviour
                             dragItem = null;
                             craftInventory.CheckCraftableItems();
                         }
-                        
-
-
-                        
                     }
                 }
-
-                //ClearStartDragCell();
-                //if (ItemDragStop())
-                //    craftInventory.CheckCraftableItems();
             }
         }
 
@@ -329,8 +330,19 @@ public class Inventory : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.V))
         {
-            print(dragItem.view);
-            dragItem = null;
+            foreach (var item in filterItems)
+            {
+                print(poolItems.Get(item).blockID);
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            foreach (var item in cells)
+            {
+                if (item.EntityItem != null)
+                    print(item.EntityItem);
+            }
         }
     }
 
