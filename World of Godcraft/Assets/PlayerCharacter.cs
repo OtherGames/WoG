@@ -23,10 +23,12 @@ public class PlayerCharacter : MonoBehaviour
     [SerializeField] Transform pistolParent;
     [SerializeField] Transform rootHolder;
 
+    public GunView GunView { get; set; }
+
     Transform highlight;
-
     WorldOfGodcraft godcraft;
-
+    EcsPool<GunComponent> poolGuns;
+    EcsPool<GunFired> poolFired;
     new PhotonView networkView;
     EcsFilter filter;
     EcsWorld ecsWorld;
@@ -62,9 +64,12 @@ public class PlayerCharacter : MonoBehaviour
         ecsWorld = godcraft.EcsWorld;
 
         filter = ecsWorld.Filter<InventoryItem>().Inc<ItemQuickInventory>().End();
+        poolGuns = ecsWorld.GetPool<GunComponent>();
+        poolFired = ecsWorld.GetPool<GunFired>();
 
         int entity = ecsWorld.NewEntity();
-        ecsWorld.GetPool<Character>().Add(entity);
+        ref var character = ref ecsWorld.GetPool<Character>().Add(entity);
+        character.view = this;
         ref var satiety = ref ecsWorld.GetPool<SatietyComponent>().Add(entity);
         satiety.MaxValue = 100;
         satiety.Value = satiety.MaxValue;
@@ -142,10 +147,13 @@ public class PlayerCharacter : MonoBehaviour
             {
                 view.transform.localScale = Vector3.one * 0.3f;
             }
+
+            GunView = view.GetComponent<GunView>();
         }
 
         ref var updated = ref ecsWorld.GetPool<UsedItemUpdated>().Add(ecsWorld.NewEntity());
         updated.id = itemID;
+        updated.entity = entitySelectedItem;
     }
 
     void ClearView()
@@ -160,6 +168,15 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (hud.InventoryShowed)
             return;
+
+        if (poolGuns.Has(entitySelectedItem))
+        {
+            if (poolGuns.Get(entitySelectedItem).shotAvailable && Input.GetMouseButton(0))
+            {
+                poolFired.Add(entitySelectedItem);
+            }
+            return;
+        }
 
         if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out RaycastHit hit, 7f, lm))
         {

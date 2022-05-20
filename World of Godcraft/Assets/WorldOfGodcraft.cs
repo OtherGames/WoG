@@ -51,7 +51,9 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new PlacedFurnaceSystem())
             .Add(new FurnaceSystem())
             .Add(new UsedItemUpdatedSystem())
-
+            .Add(new GunFireRateSystem())
+            .Add(new GunFireSystem())
+            .Add(new ProjectileSystem())
 
             // register additional worlds here, for example:
             // .AddWorld (new EcsWorld (), "events")
@@ -69,6 +71,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .DelHere<ItemUsed>()
             .DelHere<BlockPlaced>()
             .DelHere<UsedItemUpdated>()
+            .DelHere<GunFired>()
 
             .Inject(world)
             .Init();

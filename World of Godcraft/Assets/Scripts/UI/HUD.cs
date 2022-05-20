@@ -284,5 +284,29 @@ public class HUD : MonoBehaviour
             cell.Init(entity, ref component);
             quick.UpdateItems();
         }
+
+        if (Input.GetKeyDown(KeyCode.Y))
+        {
+            byte ID = ITEMS.BULLET;
+            var prefab = Service<PrefabsHolder>.Get().Get(ID);
+            var item = Instantiate(prefab);
+            item.layer = 5;
+
+            var entity = ecsWorld.NewEntity();
+            var pool = ecsWorld.GetPool<InventoryItem>();
+            pool.Add(entity);
+            ref var component = ref pool.Get(entity);
+            component.blockID = ID;
+            component.view = item;
+            component.count = 1;
+            component.itemType = ItemType.Item;
+
+            ecsWorld.GetPool<ItemQuickInventory>().Add(entity);
+
+            var quick = FindObjectOfType<QuickInventory>();
+            var cell = quick.Cells.Find(c => c.EntityItem == null);
+            cell.Init(entity, ref component);
+            quick.UpdateItems();
+        }
     }
 }
