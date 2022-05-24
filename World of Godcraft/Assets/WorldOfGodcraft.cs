@@ -42,6 +42,8 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new PlantsGeneratorSystem())
             .Add(new GenerateMorkvaSystem())
             .Add(new DropedLifetimeSystem())
+            .Add(new LifetimeSystem())
+            .Add(new ProjectileCheckLifetime())
             .Add(new DropConvertBlockToItemSystem())
             .Add(new TakeDropedSystem())
             .Add(new TakeBlockSystem())
@@ -54,6 +56,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new GunFireRateSystem())
             .Add(new GunFireSystem())
             .Add(new ProjectileSystem())
+            .Add(new EnginePlacedSystem())
 
             // register additional worlds here, for example:
             // .AddWorld (new EcsWorld (), "events")
@@ -72,6 +75,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .DelHere<BlockPlaced>()
             .DelHere<UsedItemUpdated>()
             .DelHere<GunFired>()
+            .DelHere<EnginePlaced>()
 
             .Inject(world)
             .Init();

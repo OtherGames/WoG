@@ -27,9 +27,12 @@ sealed class UsedItemUpdatedSystem : IEcsRunSystem
 
                 if(updated.id == ITEMS.SIMPLE_PISTOL)
                 {
-                    ref var gun = ref poolGuns.Add(updated.entity);
-                    gun.fireRate = 0.3f;
-                    gun.view = item.view.GetComponent<GunView>();
+                    if (!poolGuns.Has(updated.entity))
+                    {
+                        ref var gun = ref poolGuns.Add(updated.entity);
+                        gun.fireRate = 0.3f;
+                        gun.view = item.view.GetComponent<GunView>();
+                    }
                 }
             }
 

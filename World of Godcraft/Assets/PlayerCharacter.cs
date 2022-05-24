@@ -8,6 +8,7 @@ using Photon.Pun;
 using UnityStandardAssets.Characters.FirstPerson;
 using System;
 using Leopotam.EcsLite;
+using System.Linq;
 
 public class PlayerCharacter : MonoBehaviour
 {
@@ -22,6 +23,11 @@ public class PlayerCharacter : MonoBehaviour
 
     [SerializeField] Transform pistolParent;
     [SerializeField] Transform rootHolder;
+
+    [SerializeField]
+    private Transform spherePrefab;
+    Transform highlightSphere;
+    Transform highlightCube;
 
     public GunView GunView { get; set; }
 
@@ -41,7 +47,7 @@ public class PlayerCharacter : MonoBehaviour
     int entityBlockHit;
     int entitySelectedItem;
     bool isHit;
-    byte? itemID;
+    byte? selectedItemID;
 
     // Start is called before the first frame update
     void Start()
@@ -58,7 +64,8 @@ public class PlayerCharacter : MonoBehaviour
         }
 
         hud = FindObjectOfType<HUD>();
-
+        highlightSphere = Instantiate(spherePrefab);
+        highlightCube = Instantiate(spherePrefab);
         highlight = Instantiate(highlightPrefab);
         godcraft = FindObjectOfType<WorldOfGodcraft>();
         ecsWorld = godcraft.EcsWorld;
@@ -75,7 +82,7 @@ public class PlayerCharacter : MonoBehaviour
         satiety.Value = satiety.MaxValue;
 
         onSlotUpdate += Slot_Updated;
-        itemID = null;
+        selectedItemID = null;
     }
 
     // Update is called once per frame
@@ -103,9 +110,9 @@ public class PlayerCharacter : MonoBehaviour
             if(idx == idxQuickSlot)
             {
                 selectedItem = ecsWorld.GetPool<InventoryItem>().Get(entity).blockID;
-                if (itemID == null || itemID != selectedItem)
+                if (selectedItemID == null || selectedItemID != selectedItem)
                 {
-                    itemID = selectedItem;
+                    selectedItemID = selectedItem;
                     entitySelectedItem = entity;
                     foundItem = true;
                     onSlotUpdate?.Invoke();
@@ -115,20 +122,20 @@ public class PlayerCharacter : MonoBehaviour
             idx++;
         }
 
-        if(!foundItem && itemID != selectedItem)
+        if(!foundItem && selectedItemID != selectedItem)
         {
-            itemID = null;
+            selectedItemID = null;
             onSlotUpdate?.Invoke();
         }
     }
 
     void Slot_Updated()
     {
-        print("слот обновлен " + itemID);
+        print("Быстрой слот обновлен: " + selectedItemID);
 
         ClearView();
 
-        if(itemID != null)
+        if(selectedItemID != null)
         {
             ref var item = ref ecsWorld.GetPool<InventoryItem>().Get(entitySelectedItem);
             var view = Instantiate(item.view);
@@ -152,7 +159,7 @@ public class PlayerCharacter : MonoBehaviour
         }
 
         ref var updated = ref ecsWorld.GetPool<UsedItemUpdated>().Add(ecsWorld.NewEntity());
-        updated.id = itemID;
+        updated.id = selectedItemID;
         updated.entity = entitySelectedItem;
     }
 
@@ -169,7 +176,7 @@ public class PlayerCharacter : MonoBehaviour
         if (hud.InventoryShowed)
             return;
 
-        if (poolGuns.Has(entitySelectedItem))
+        if (selectedItemID != null && poolGuns.Has(entitySelectedItem))
         {
             if (poolGuns.Get(entitySelectedItem).shotAvailable && Input.GetMouseButton(0))
             {
@@ -185,7 +192,16 @@ public class PlayerCharacter : MonoBehaviour
                 HitOnPickable(hit.collider.gameObject);
                 return;
             }
-           
+
+            if(hit.collider.gameObject.layer == 8)
+            {
+                HitOnEngine(hit);
+                return;
+            }
+
+            highlightSphere.position = Vector3.zero;
+            highlightCube.position = Vector3.zero;
+
             Vector3 normalPos = hit.point - (hit.normal / 2);
 
             int x = Mathf.FloorToInt(normalPos.x);
@@ -195,6 +211,7 @@ public class PlayerCharacter : MonoBehaviour
             Vector3 blockPosition = new(x, y, z);
 
             highlight.position = blockPosition;
+            highlight.forward = Vector3.forward;
             
             if (Input.GetMouseButtonDown(0))
             {
@@ -303,9 +320,6 @@ public class PlayerCharacter : MonoBehaviour
 
                 }
             }
-
-
-
         }
         else
         {
@@ -322,6 +336,163 @@ public class PlayerCharacter : MonoBehaviour
             ref var item = ref ecsWorld.GetPool<ItemTaked>().Add(ecsWorld.NewEntity());
             item.view = view;
         }
+    }
+
+    void HitOnEngine(RaycastHit hit)
+    {
+        Vector3 normalPos = hit.point - (hit.normal / 2);
+
+        int x = Mathf.FloorToInt(normalPos.x);
+        int y = Mathf.FloorToInt(normalPos.y);
+        int z = Mathf.FloorToInt(normalPos.z);
+
+        Vector3 blockPosition = new(x, y, z);
+        var pos = hit.collider.transform.position;
+        
+        highlight.position = normalPos;
+        highlight.forward = hit.normal;
+
+        //var textX = Mathf.FloorToInt(pos.x - hit.point.x - hit.normal.x);
+        //var textY = Mathf.FloorToInt(pos.y - hit.point.y + 1);
+        //var textZ = Mathf.FloorToInt(pos.z - hit.point.z - hit.normal.z);
+        //var testPos = new Vector3(textX, textY, textZ);
+        //highlightSphere.parent = hit.collider.transform;
+        //highlightSphere.localPosition = testPos;
+        //var pos = hit.collider.transform.position;
+        //int globX = Mathf.FloorToInt(pos.x);
+        //int globY = Mathf.FloorToInt(pos.y);
+        //int globZ = Mathf.FloorToInt(pos.z);
+        //var roundPos = new Vector3(globX, globY, globZ);
+        //highlightSphere.forward = hit.normal;
+        //highlightSphere.parent = hit.collider.transform;
+        //highlightSphere.localPosition = (roundPos - blockPosition);
+
+        //var cubePos = hit.point;
+        //var pos = hit.collider.transform.position;
+        highlightSphere.gameObject.SetActive(false);
+        highlightSphere.parent = hit.transform;
+        highlightSphere.position = hit.point;
+        highlightSphere.forward = hit.normal;
+        highlightCube.parent = hit.transform;
+        highlightCube.localPosition = Vector3.zero;
+
+        var localX = highlightSphere.localPosition.x - 0.0001f;
+        var localY = highlightSphere.localPosition.y - 0.0001f;
+        var localZ = highlightSphere.localPosition.z - 0.0001f;
+        var localCubePos = highlightSphere.localPosition;
+        var optaX = localX - Mathf.RoundToInt(localX);
+        var optaY = localY - Mathf.RoundToInt(localY);
+        var optaZ = localZ - Mathf.RoundToInt(localZ);
+        
+        var rotX = Mathf.RoundToInt(highlightSphere.localRotation.eulerAngles.x);
+        var rotY = Mathf.RoundToInt(highlightSphere.localRotation.eulerAngles.y);
+        var rotZ = Mathf.RoundToInt(highlightSphere.localRotation.eulerAngles.z);
+        
+        if (optaX > 0)
+        {
+            localCubePos.x = Mathf.RoundToInt(localX) + 0.5f;
+        }
+        else
+        {
+            localCubePos.x = Mathf.RoundToInt(localX) - 0.5f;
+        }
+        if(rotY == 270)
+        {
+            localCubePos.x = Mathf.RoundToInt(localX) + 0.5f;
+        }
+
+        if(optaY > 0)
+        {
+            localCubePos.y = Mathf.RoundToInt(localY) + 0.5f;
+        }
+        else
+        {
+            localCubePos.y = Mathf.RoundToInt(localY) - 0.5f;
+        }
+        if(rotX == 90)
+        {
+            localCubePos.y = Mathf.RoundToInt(localY) + 0.5f;
+        }
+        
+
+        if (optaZ > 0)
+        {
+            localCubePos.z = Mathf.RoundToInt(localZ) + 0.5f;
+        }
+        else
+        {
+            localCubePos.z = Mathf.RoundToInt(localZ) - 0.5f;
+        }
+        if (rotY == 180)
+        {
+            localCubePos.z = Mathf.RoundToInt(localZ) + 0.5f;
+        }
+
+
+        //var localX = highlightSphere.localPosition.x - 0.0001f;
+        //var localY = highlightSphere.localPosition.y - 0.0001f;
+        //var localZ = highlightSphere.localPosition.z - 0.0001f;
+        //var localCubePos = highlightSphere.localPosition;
+        //var optaX = localX - MathF.Truncate(localX);
+        //var optaY = localY - MathF.Truncate(localY);
+        //var optaZ = localZ - MathF.Truncate(localZ);
+        //print(Mathf.RoundToInt(localX).ToString("F7"));
+        //print((localX).ToString("F7") + " pure");
+        ////print(highlightSphere.localRotation.eulerAngles);
+        //localCubePos.x = Mathf.RoundToInt(localX) + 0.5f;
+        //localCubePos.y = Mathf.RoundToInt(localY) + 0.5f;
+        //localCubePos.z = Mathf.RoundToInt(localZ) + 0.5f;
+
+        //if (Mathf.Approximately(highlightSphere.localRotation.eulerAngles.x, -90))
+        //{
+        //    localCubePos.y = Mathf.FloorToInt(localY) - 0.5f;
+        //    print("dvosndvin");
+        //}
+        //else
+        //{
+        //    localCubePos.y = Mathf.FloorToInt(localY) + 0.5f;
+        //}
+
+
+
+        //if (Mathf.Abs(localX) > 0.01f)
+        //{
+        //    localCubePos.x = Mathf.FloorToInt(localX) + 0.5f;
+        //}
+        //if (Mathf.Abs(localY) > 0.01f)
+        //{
+        //    localCubePos.y = Mathf.FloorToInt(localY) + 0.5f;
+        //}
+        //if (Mathf.Abs(localZ) > 0.01f)
+        //{
+        //    localCubePos.z = Mathf.FloorToInt(localZ) + 0.5f;
+        //}
+
+        //if (Mathf.Abs(optaZ) > 0.01f)
+        //{
+        //    localCubePos.z = Mathf.FloorToInt((hit.point - pos).z) + 0.5f;
+        //}
+
+        highlightCube.localPosition = localCubePos;
+        highlightCube.forward = hit.normal;
+
+        //cubePos.x = x;
+        //cubePos.y = y + 1;
+        //highlightSphere.position = cubePos;
+        //Vector3 nearestVertex = default;
+        //float minDistance = 888;
+        //foreach (var vertex in hit.collider.GetComponent<MeshFilter>().mesh.vertices)
+        //{
+        //    var dist = (hit.point - (pos - vertex)).magnitude;
+        //    if(dist < minDistance)
+        //    {
+        //        minDistance = dist;
+        //        nearestVertex = (pos - vertex);
+        //        print(minDistance);
+        //    }
+        //}
+        //print("====================");
+        //highlightSphere.position = nearestVertex;
     }
 
     void UpdateHolderRotation()

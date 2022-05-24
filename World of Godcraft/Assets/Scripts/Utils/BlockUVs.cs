@@ -77,6 +77,8 @@ public class BlockUVS
                 return new BlockUVS(15, 2);
             case 36:// Гравий
                 return new BlockUVS(3, 14);
+            case 88:// Engine
+                return new BlockUVS(14, 6);
             case 100:// Простой верстак
                 return new BlockUVS(15, 0);
             case 101:// Верстак

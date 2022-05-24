@@ -183,6 +183,72 @@ public class MeshGenerator
         return mesh;
     }
 
+    internal Mesh CreateVehicleMesh(ref VehicleComponent component, Vector3Int pos)
+    {
+        Mesh mesh = new();
+
+        vertices.Clear();
+        triangulos.Clear();
+        uvs.Clear();
+
+        float posX = component.pos.x;
+        float posY = component.pos.y;
+        float posZ = component.pos.z;
+        int vehicleSize = component.size;
+
+        for (int x = 0; x < component.size; x++)
+        {
+            for (int y = 0; y < component.size; y++)
+            {
+                for (int z = 0; z < component.size; z++)
+                {
+                    byte ID = component.blocks[x][y][z];
+                    if (ID > 0)
+                    {
+                        var b = BlockUVS.GetBlock(ID);
+
+                        if (z + 1 >= vehicleSize || component.blocks[x][y][z + 1] == 0)
+                        {
+                            CreateBlockSide(BlockSide.Front, x, y, z, b);
+                        }
+                        if ((z - 1 < 0 || component.blocks[x][y][z - 1] == 0))
+                        {
+                            CreateBlockSide(BlockSide.Back, x, y, z, b);
+                        }
+                        if ((x + 1 >= vehicleSize || component.blocks[x + 1][y][z] == 0))
+                        {
+                            CreateBlockSide(BlockSide.Right, x, y, z, b);
+                        }
+                        if ((x - 1 < 0 || component.blocks[x - 1][y][z] == 0))
+                        {
+                            CreateBlockSide(BlockSide.Left, x, y, z, b);
+                        }
+                        if (y + 1 >= vehicleSize || component.blocks[x][y + 1][z] == 0)
+                        {
+                            CreateBlockSide(BlockSide.Top, x, y, z, b);
+                        }
+                        if (y - 1 < 0 || component.blocks[x][y - 1][z] == 0)
+                        {
+                            CreateBlockSide(BlockSide.Bottom, x, y, z, b);
+                        }
+                    }
+                }
+            }
+        }
+
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangulos.ToArray();
+        mesh.uv = uvs.ToArray();
+
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
+        mesh.OptimizeReorderVertexBuffer();
+        mesh.Optimize();
+
+        return mesh;
+    }
+
     public byte BlockExist(int x, int y, int z)
     {
         Random.InitState(505);

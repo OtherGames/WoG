@@ -12,9 +12,9 @@ sealed class GunFireSystem : IEcsRunSystem
     [EcsPool]
     readonly EcsPool<GunComponent> poolGuns = default;
     [EcsPool]
-    readonly EcsPool<ProjectileComponent> poolProjectiles = default;    
-    //[EcsPool]
-    //readonly EcsPool<DropedLifetimeSystem>
+    readonly EcsPool<ProjectileComponent> poolProjectiles = default;
+    [EcsPool]
+    readonly EcsPool<LifetimeComponent> poolLifetime = default;
 
     [EcsFilter(typeof(GunFired))]
     readonly EcsFilter filterFired = default;
@@ -53,6 +53,8 @@ sealed class GunFireSystem : IEcsRunSystem
                     view.transform.position = parent.position;
                     view.transform.forward = parent.transform.forward;
                     view.layer = 0;
+
+                    poolLifetime.Add(entityProjectile);
                 }
             }
         }

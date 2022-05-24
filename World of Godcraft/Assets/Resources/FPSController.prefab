@@ -309,10 +309,11 @@ MonoBehaviour:
   cam: {fileID: 2864765920067453550}
   lm:
     serializedVersion: 2
-    m_Bits: 19
+    m_Bits: 275
   uiCamera: {fileID: 4180329785770288258}
   pistolParent: {fileID: 6354073521353283059}
   rootHolder: {fileID: 2679448761902676254}
+  spherePrefab: {fileID: 7434095911630309504, guid: 54d046a1a29056b46ad0d2e306a828da, type: 3}
 --- !u!114 &2864765920078231436
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -663,7 +664,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 23
+    m_Bits: 279
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0

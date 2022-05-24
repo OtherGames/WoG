@@ -9,4 +9,5 @@ public static class BLOCKS
     public const byte ORE_SULFUR = 32;
     public const byte ORE_COAL = 6;
     public const byte GRAVEL = 36;
+    public const byte ENGINE = 88;
 }

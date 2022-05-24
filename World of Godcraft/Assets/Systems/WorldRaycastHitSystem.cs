@@ -76,6 +76,20 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
         int y = (int)(hit.position.y - pos.y);
         int z = (int)(hit.position.z - pos.z);
 
+        // HOT FIX, а может и нет, так как это по сути корень игры
+        if (hit.blockId == BLOCKS.ENGINE)
+        {
+            var e = world.NewEntity();
+            ref var enginePlaced = ref world.GetPool<EnginePlaced>().Add(e);
+            var xGlobal = Mathf.FloorToInt(x + pos.x);
+            var yGlobal = Mathf.FloorToInt(y + pos.y);
+            var zGlobal = Mathf.FloorToInt(z + pos.z);
+
+            enginePlaced.pos = new Vector3Int(xGlobal, yGlobal, zGlobal);
+
+            return;
+        }
+        
         //chunck = ref chunckWorld.GetChunk(new Vector3(x, y, z));
 
         byte blockID = chunck.blocks[x, y, z];
@@ -107,7 +121,6 @@ sealed class WorldRaycastHitSystem : IEcsRunSystem
                 otherChunck.meshFilter.mesh = otherMesh;
                 otherChunck.collider.sharedMesh = otherMesh;  
             }
-
         }
 
         if (hit.blockId == 0)
