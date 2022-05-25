@@ -26,6 +26,8 @@ public class PlayerCharacter : MonoBehaviour
 
     [SerializeField]
     private Transform spherePrefab;
+    [SerializeField]
+    private Transform cubePrefab;
     Transform highlightSphere;
     Transform highlightCube;
 
@@ -64,7 +66,7 @@ public class PlayerCharacter : MonoBehaviour
         }
 
         hud = FindObjectOfType<HUD>();
-        highlightSphere = Instantiate(spherePrefab);
+        highlightSphere = Instantiate(cubePrefab);
         highlightCube = Instantiate(spherePrefab);
         highlight = Instantiate(highlightPrefab);
         godcraft = FindObjectOfType<WorldOfGodcraft>();
@@ -341,39 +343,15 @@ public class PlayerCharacter : MonoBehaviour
     void HitOnEngine(RaycastHit hit)
     {
         Vector3 normalPos = hit.point - (hit.normal / 2);
-
-        int x = Mathf.FloorToInt(normalPos.x);
-        int y = Mathf.FloorToInt(normalPos.y);
-        int z = Mathf.FloorToInt(normalPos.z);
-
-        Vector3 blockPosition = new(x, y, z);
-        var pos = hit.collider.transform.position;
-        
+       
         highlight.position = normalPos;
         highlight.forward = hit.normal;
-
-        //var textX = Mathf.FloorToInt(pos.x - hit.point.x - hit.normal.x);
-        //var textY = Mathf.FloorToInt(pos.y - hit.point.y + 1);
-        //var textZ = Mathf.FloorToInt(pos.z - hit.point.z - hit.normal.z);
-        //var testPos = new Vector3(textX, textY, textZ);
-        //highlightSphere.parent = hit.collider.transform;
-        //highlightSphere.localPosition = testPos;
-        //var pos = hit.collider.transform.position;
-        //int globX = Mathf.FloorToInt(pos.x);
-        //int globY = Mathf.FloorToInt(pos.y);
-        //int globZ = Mathf.FloorToInt(pos.z);
-        //var roundPos = new Vector3(globX, globY, globZ);
-        //highlightSphere.forward = hit.normal;
-        //highlightSphere.parent = hit.collider.transform;
-        //highlightSphere.localPosition = (roundPos - blockPosition);
-
-        //var cubePos = hit.point;
-        //var pos = hit.collider.transform.position;
-        highlightSphere.gameObject.SetActive(false);
-        highlightSphere.parent = hit.transform;
+        if (highlightSphere.parent != hit.transform)
+            highlightSphere.parent = hit.transform;
         highlightSphere.position = hit.point;
         highlightSphere.forward = hit.normal;
-        highlightCube.parent = hit.transform;
+        if (highlightCube.parent != hit.transform)
+            highlightCube.parent = hit.transform;
         highlightCube.localPosition = Vector3.zero;
 
         var localX = highlightSphere.localPosition.x - 0.0001f;
@@ -396,9 +374,10 @@ public class PlayerCharacter : MonoBehaviour
         {
             localCubePos.x = Mathf.RoundToInt(localX) - 0.5f;
         }
-        if(rotY == 270)
+        if(rotY == 270 && rotX != 270)
         {
             localCubePos.x = Mathf.RoundToInt(localX) + 0.5f;
+            //print(rotX + " ===== " + rotZ);
         }
 
         if(optaY > 0)
@@ -423,11 +402,10 @@ public class PlayerCharacter : MonoBehaviour
         {
             localCubePos.z = Mathf.RoundToInt(localZ) - 0.5f;
         }
-        if (rotY == 180)
+        if (rotY == 180 && (rotX == 0 || rotX == 360))
         {
             localCubePos.z = Mathf.RoundToInt(localZ) + 0.5f;
         }
-
 
         //var localX = highlightSphere.localPosition.x - 0.0001f;
         //var localY = highlightSphere.localPosition.y - 0.0001f;
@@ -474,8 +452,42 @@ public class PlayerCharacter : MonoBehaviour
         //}
 
         highlightCube.localPosition = localCubePos;
-        highlightCube.forward = hit.normal;
 
+        var locRotZ = Mathf.RoundToInt((float)rotZ / 90f) * 90;
+        var locRot = new Vector3(rotX, rotY, locRotZ);
+        highlightCube.localRotation = Quaternion.Euler(locRot);
+
+        //if (rotX == 90 || rotX == 270 || rotX == 180)
+        //{
+        //    var locRot = new Vector3(rotX, 0, 0);
+        //    highlightCube.localRotation = Quaternion.Euler(locRot);
+        //}
+        //else if(rotY == 90 || rotY == 270 || rotY == 180)
+        //{
+        //    var locRot = new Vector3(rotX, rotY, 0);
+        //    highlightCube.localRotation = Quaternion.Euler(locRot);
+        //}
+        //else if(rotY == 0 && rotX == 0)
+        //{
+        //    highlightCube.localRotation = Quaternion.identity;
+        //}
+        //else
+        //{
+        //    highlightCube.forward = hit.normal;
+        //}
+        highlight.position = Vector3.zero;
+
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            var e = ecsWorld.NewEntity();
+            var pool = ecsWorld.GetPool<VehicleHitEvent>();
+            ref var hitEvent = ref pool.Add(e);
+            var blockPos = localCubePos - new Vector3(-0.5f, 0.5f, 0.5f);
+            hitEvent.blockPos = new Vector3Int(Mathf.RoundToInt(blockPos.x), Mathf.RoundToInt(blockPos.y), Mathf.RoundToInt(blockPos.z));
+        }
+
+        
         //cubePos.x = x;
         //cubePos.y = y + 1;
         //highlightSphere.position = cubePos;

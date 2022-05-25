@@ -249,6 +249,70 @@ public class MeshGenerator
         return mesh;
     }
 
+    internal Mesh UpdateVehicleMesh(ref VehicleComponent component)
+    {
+        vertices.Clear();
+        triangulos.Clear();
+        uvs.Clear();
+
+        Mesh mesh = new();
+        mesh.Clear();
+
+        int vehicleSize = component.size;
+
+        for (int x = 0; x < component.size; x++)
+        {
+            for (int y = 0; y < component.size; y++)
+            {
+                for (int z = 0; z < component.size; z++)
+                {
+                    byte ID = component.blocks[x][y][z];
+                    if (ID > 0)
+                    {
+                        var b = BlockUVS.GetBlock(ID);
+                        
+                        if (z + 1 >= vehicleSize || component.blocks[x][y][z + 1] == 0)
+                        {
+                            CreateBlockSide(BlockSide.Front, x, y, z, b, ref component);
+                        }
+                        if ((z - 1 < 0 || component.blocks[x][y][z - 1] == 0))
+                        {
+                            CreateBlockSide(BlockSide.Back, x, y, z, b, ref component);
+                        }
+                        if ((x + 1 >= vehicleSize || component.blocks[x + 1][y][z] == 0))
+                        {
+                            CreateBlockSide(BlockSide.Right, x, y, z, b, ref component);
+                        }
+                        if ((x - 1 < 0 || component.blocks[x - 1][y][z] == 0))
+                        {
+                            CreateBlockSide(BlockSide.Left, x, y, z, b, ref component);
+                        }
+                        if (y + 1 >= vehicleSize || component.blocks[x][y + 1][z] == 0)
+                        {
+                            CreateBlockSide(BlockSide.Top, x, y, z, b, ref component);
+                        }
+                        if (y - 1 < 0 || component.blocks[x][y - 1][z] == 0)
+                        {
+                            CreateBlockSide(BlockSide.Bottom, x, y, z, b, ref component);
+                        }
+                    }
+                }
+            }
+        }
+
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangulos.ToArray();
+        mesh.uv = uvs.ToArray();
+
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
+        mesh.OptimizeReorderVertexBuffer();
+        mesh.Optimize();
+
+        return mesh;
+    }
+
     public byte BlockExist(int x, int y, int z)
     {
         Random.InitState(505);
@@ -401,6 +465,28 @@ public class MeshGenerator
         vertices.Add(new Vector3(x + vrtx[1].x, y + vrtx[1].y, z + vrtx[1].z)); // 2
         vertices.Add(new Vector3(x + vrtx[2].x, y + vrtx[2].y, z + vrtx[2].z)); // 3
         vertices.Add(new Vector3(x + vrtx[3].x, y + vrtx[3].y, z + vrtx[3].z)); // 4
+
+        AddUVS(side, b);
+    }
+
+    void CreateBlockSide(BlockSide side, int x, int y, int z, BlockUVS b, ref VehicleComponent vehicle)
+    {
+        List<Vector3> vrtx = blockVerticesSet[side];
+        List<int> trngls = blockTrianglesSet[side];
+        int offset = 1;
+
+        triangulos.Add(trngls[0] - offset + vertices.Count);
+        triangulos.Add(trngls[1] - offset + vertices.Count);
+        triangulos.Add(trngls[2] - offset + vertices.Count);
+
+        triangulos.Add(trngls[3] - offset + vertices.Count);
+        triangulos.Add(trngls[4] - offset + vertices.Count);
+        triangulos.Add(trngls[5] - offset + vertices.Count);
+
+        vertices.Add(new Vector3(x + vrtx[0].x, y + vrtx[0].y, z + vrtx[0].z + vehicle.meshOffset.z)); // 1
+        vertices.Add(new Vector3(x + vrtx[1].x, y + vrtx[1].y, z + vrtx[1].z + vehicle.meshOffset.z)); // 2
+        vertices.Add(new Vector3(x + vrtx[2].x, y + vrtx[2].y, z + vrtx[2].z + vehicle.meshOffset.z)); // 3
+        vertices.Add(new Vector3(x + vrtx[3].x, y + vrtx[3].y, z + vrtx[3].z + vehicle.meshOffset.z)); // 4
 
         AddUVS(side, b);
     }

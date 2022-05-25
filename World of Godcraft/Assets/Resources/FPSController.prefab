@@ -314,6 +314,7 @@ MonoBehaviour:
   pistolParent: {fileID: 6354073521353283059}
   rootHolder: {fileID: 2679448761902676254}
   spherePrefab: {fileID: 7434095911630309504, guid: 54d046a1a29056b46ad0d2e306a828da, type: 3}
+  cubePrefab: {fileID: 7434095911630309504, guid: 8fb2f629da1fa0346a3582968e703261, type: 3}
 --- !u!114 &2864765920078231436
 MonoBehaviour:
   m_ObjectHideFlags: 0
