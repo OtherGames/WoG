@@ -483,10 +483,10 @@ public class MeshGenerator
         triangulos.Add(trngls[4] - offset + vertices.Count);
         triangulos.Add(trngls[5] - offset + vertices.Count);
 
-        vertices.Add(new Vector3(x + vrtx[0].x, y + vrtx[0].y, z + vrtx[0].z + vehicle.meshOffset.z)); // 1
-        vertices.Add(new Vector3(x + vrtx[1].x, y + vrtx[1].y, z + vrtx[1].z + vehicle.meshOffset.z)); // 2
-        vertices.Add(new Vector3(x + vrtx[2].x, y + vrtx[2].y, z + vrtx[2].z + vehicle.meshOffset.z)); // 3
-        vertices.Add(new Vector3(x + vrtx[3].x, y + vrtx[3].y, z + vrtx[3].z + vehicle.meshOffset.z)); // 4
+        vertices.Add(new Vector3(x + vrtx[0].x + vehicle.meshOffset.x, y + vrtx[0].y + vehicle.meshOffset.y, z + vrtx[0].z + vehicle.meshOffset.z)); // 1
+        vertices.Add(new Vector3(x + vrtx[1].x + vehicle.meshOffset.x, y + vrtx[1].y + vehicle.meshOffset.y, z + vrtx[1].z + vehicle.meshOffset.z)); // 2
+        vertices.Add(new Vector3(x + vrtx[2].x + vehicle.meshOffset.x, y + vrtx[2].y + vehicle.meshOffset.y, z + vrtx[2].z + vehicle.meshOffset.z)); // 3
+        vertices.Add(new Vector3(x + vrtx[3].x + vehicle.meshOffset.x, y + vrtx[3].y + vehicle.meshOffset.y, z + vrtx[3].z + vehicle.meshOffset.z)); // 4
 
         AddUVS(side, b);
     }

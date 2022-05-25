@@ -484,6 +484,34 @@ public class PlayerCharacter : MonoBehaviour
             var pool = ecsWorld.GetPool<VehicleHitEvent>();
             ref var hitEvent = ref pool.Add(e);
             var blockPos = localCubePos - new Vector3(-0.5f, 0.5f, 0.5f);
+
+            print($"Rotation {rotX} : {rotY} : {rotZ}");
+
+            if(rotX == 0 && rotY == 180)
+            {
+                blockPos += Vector3.back;
+            }
+            if(rotX == 0 && rotY == 0)
+            {
+                blockPos += Vector3.forward;
+            }
+            if(rotX == 0 && rotY == 90)
+            {
+                blockPos += Vector3.right;
+            }
+            if(rotX == 0 && rotY == 270)
+            {
+                blockPos += Vector3.left;
+            }
+            if(rotX == 270)
+            {
+                blockPos += Vector3.up;
+            }
+            if(rotX == 90)
+            {
+                blockPos += Vector3.down;
+            }
+
             hitEvent.blockPos = new Vector3Int(Mathf.RoundToInt(blockPos.x), Mathf.RoundToInt(blockPos.y), Mathf.RoundToInt(blockPos.z));
         }
 
