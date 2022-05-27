@@ -373,7 +373,18 @@ public class HUD : MonoBehaviour
             {
                 joint.useMotor = true;
                 var motor = joint.motor;
-                motor.targetVelocity += 100 * joint.axis.z;
+                if (!Mathf.Approximately(joint.axis.x, 0))
+                {
+                    motor.targetVelocity += 100 * joint.axis.x;
+                }
+                if (!Mathf.Approximately(joint.axis.y, 0))
+                {
+                    motor.targetVelocity += 100 * joint.axis.y;
+                }
+                if (!Mathf.Approximately(joint.axis.z, 0))
+                {
+                    motor.targetVelocity += 100 * joint.axis.z;
+                }
                 motor.force += 100;
                 joint.motor = motor;
             }
