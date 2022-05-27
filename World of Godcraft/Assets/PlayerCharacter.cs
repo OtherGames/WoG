@@ -195,9 +195,9 @@ public class PlayerCharacter : MonoBehaviour
                 return;
             }
 
-            if(hit.collider.gameObject.layer == 8)
+            if(hit.collider.gameObject.layer == LayerMask.NameToLayer("Vehicle"))
             {
-                HitOnEngine(hit);
+                HitOnVehicle(hit);
                 return;
             }
 
@@ -340,18 +340,18 @@ public class PlayerCharacter : MonoBehaviour
         }
     }
 
-    void HitOnEngine(RaycastHit hit)
+    void HitOnVehicle(RaycastHit hit)
     {
-        Vector3 normalPos = hit.point - (hit.normal / 2);
-       
-        highlight.position = normalPos;
-        highlight.forward = hit.normal;
+        highlight.position = Vector3.zero;
+
         if (highlightSphere.parent != hit.transform)
             highlightSphere.parent = hit.transform;
-        highlightSphere.position = hit.point;
-        highlightSphere.forward = hit.normal;
         if (highlightCube.parent != hit.transform)
             highlightCube.parent = hit.transform;
+
+        highlightSphere.position = hit.point;
+        highlightSphere.forward = hit.normal;
+        
         highlightCube.localPosition = Vector3.zero;
 
         var localX = highlightSphere.localPosition.x - 0.0001f;
@@ -377,7 +377,6 @@ public class PlayerCharacter : MonoBehaviour
         if(rotY == 270 && rotX != 270)
         {
             localCubePos.x = Mathf.RoundToInt(localX) + 0.5f;
-            //print(rotX + " ===== " + rotZ);
         }
 
         if(optaY > 0)
@@ -457,83 +456,109 @@ public class PlayerCharacter : MonoBehaviour
         var locRot = new Vector3(rotX, rotY, locRotZ);
         highlightCube.localRotation = Quaternion.Euler(locRot);
 
-        //if (rotX == 90 || rotX == 270 || rotX == 180)
-        //{
-        //    var locRot = new Vector3(rotX, 0, 0);
-        //    highlightCube.localRotation = Quaternion.Euler(locRot);
-        //}
-        //else if(rotY == 90 || rotY == 270 || rotY == 180)
-        //{
-        //    var locRot = new Vector3(rotX, rotY, 0);
-        //    highlightCube.localRotation = Quaternion.Euler(locRot);
-        //}
-        //else if(rotY == 0 && rotX == 0)
-        //{
-        //    highlightCube.localRotation = Quaternion.identity;
-        //}
-        //else
-        //{
-        //    highlightCube.forward = hit.normal;
-        //}
-        highlight.position = Vector3.zero;
-
 
         if (Input.GetMouseButtonDown(1))
+        {
+            var blockID = GetBlockIDQuickSlot();
+
+            if (blockID == 0)
+                return;
+
+            var e = ecsWorld.NewEntity();
+            var pool = ecsWorld.GetPool<VehicleHitEvent>();
+            ref var hitEvent = ref pool.Add(e);
+            var blockPos = localCubePos - new Vector3(-0.5f, 0.5f, 0.5f);
+            var connectedPos = blockPos;
+            rotX = Mathf.RoundToInt((float)rotX / 90f) * 90;
+            rotY = Mathf.RoundToInt((float)rotY / 90f) * 90;
+            rotZ = Mathf.RoundToInt((float)rotZ / 90f) * 90;
+            print($"Rotation {rotX} : {rotY} : {rotZ}");
+
+            if (rotX == 0 && rotY == 180)
+            {
+                blockPos += Vector3.back;
+            }
+            else if(rotX == 0 && rotY == 0)
+            {
+                blockPos += Vector3.forward;
+            }
+            else if(rotX == 0 && rotY == 90)
+            {
+                blockPos += Vector3.right;
+            }
+            else if(rotX == 0 && rotY == 270)
+            {
+                blockPos += Vector3.left;
+            }
+            else if(rotX == 270 )
+            {
+                blockPos += Vector3.up;
+            }
+            else if(rotX == 90)
+            {
+                blockPos += Vector3.down;
+            }
+
+            hitEvent.connectedPos = new Vector3Int(Mathf.RoundToInt(connectedPos.x), Mathf.RoundToInt(connectedPos.y), Mathf.RoundToInt(connectedPos.z)); ;
+            hitEvent.blockPos = new Vector3Int(Mathf.RoundToInt(blockPos.x), Mathf.RoundToInt(blockPos.y), Mathf.RoundToInt(blockPos.z));
+            hitEvent.blockID = blockID;
+        }
+        if (Input.GetMouseButtonDown(0))
         {
             var e = ecsWorld.NewEntity();
             var pool = ecsWorld.GetPool<VehicleHitEvent>();
             ref var hitEvent = ref pool.Add(e);
             var blockPos = localCubePos - new Vector3(-0.5f, 0.5f, 0.5f);
-
-            print($"Rotation {rotX} : {rotY} : {rotZ}");
-
-            if(rotX == 0 && rotY == 180)
-            {
-                blockPos += Vector3.back;
-            }
-            if(rotX == 0 && rotY == 0)
-            {
-                blockPos += Vector3.forward;
-            }
-            if(rotX == 0 && rotY == 90)
-            {
-                blockPos += Vector3.right;
-            }
-            if(rotX == 0 && rotY == 270)
-            {
-                blockPos += Vector3.left;
-            }
-            if(rotX == 270)
-            {
-                blockPos += Vector3.up;
-            }
-            if(rotX == 90)
-            {
-                blockPos += Vector3.down;
-            }
-
             hitEvent.blockPos = new Vector3Int(Mathf.RoundToInt(blockPos.x), Mathf.RoundToInt(blockPos.y), Mathf.RoundToInt(blockPos.z));
+            hitEvent.blockID = 0;
         }
 
-        
-        //cubePos.x = x;
-        //cubePos.y = y + 1;
-        //highlightSphere.position = cubePos;
-        //Vector3 nearestVertex = default;
-        //float minDistance = 888;
-        //foreach (var vertex in hit.collider.GetComponent<MeshFilter>().mesh.vertices)
-        //{
-        //    var dist = (hit.point - (pos - vertex)).magnitude;
-        //    if(dist < minDistance)
-        //    {
-        //        minDistance = dist;
-        //        nearestVertex = (pos - vertex);
-        //        print(minDistance);
-        //    }
-        //}
-        //print("====================");
-        //highlightSphere.position = nearestVertex;
     }
+
+    byte GetBlockIDQuickSlot()
+    {
+        byte result = 0;
+
+        int idx = 0;
+        foreach (var entity in filter)
+        {
+            if (idx == InputHandler.Instance.quickSlotID - 1)
+            {
+                var poolItems = ecsWorld.GetPool<InventoryItem>();
+                ref var item = ref poolItems.Get(entity);
+
+                if (item.itemType == ItemType.Block)
+                {
+                    // HOT FIX вынести в отдельную систему
+                    result = item.blockID;
+
+                    item.count--;
+                    if (item.count == 0)
+                    {
+                        Destroy(item.view);
+                        ecsWorld.DelEntity(entity);
+                    }
+
+                    StartCoroutine(Delay());
+
+                    return result;
+                }
+
+                IEnumerator Delay()
+                {
+                    yield return null;
+
+                    GlobalEvents.itemUsing?.Invoke(entity);
+                }
+
+                break;
+            }
+            idx++;
+        }
+
+        return result;
+    }
+
 
     void UpdateHolderRotation()
     {

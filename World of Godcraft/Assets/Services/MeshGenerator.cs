@@ -183,7 +183,7 @@ public class MeshGenerator
         return mesh;
     }
 
-    internal Mesh CreateVehicleMesh(ref VehicleComponent component, Vector3Int pos)
+    internal Mesh CreateVehicleMesh(ref VehicleComponent component)
     {
         Mesh mesh = new();
 

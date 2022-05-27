@@ -54,6 +54,37 @@ public class DropedBlockGenerator
         return mesh;
     }
 
+    internal Mesh GenerateMeshBlock(byte blockID)
+    {
+        Mesh mesh = new();
+        mesh.Clear();
+
+        triangulos.Clear();
+        vertices.Clear();
+        uvs.Clear();
+
+        BlockUVS b = BlockUVS.GetBlock(blockID);
+
+        CreateBlockSide(BlockSide.Front, 0, 0, 0, b);
+        CreateBlockSide(BlockSide.Back, 0, 0, 0, b);
+        CreateBlockSide(BlockSide.Right, 0, 0, 0, b);
+        CreateBlockSide(BlockSide.Left, 0, 0, 0, b);
+        CreateBlockSide(BlockSide.Top, 0, 0, 0, b);
+        CreateBlockSide(BlockSide.Bottom, 0, 0, 0, b);
+
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangulos.ToArray();
+        mesh.uv = uvs.ToArray();
+
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
+        mesh.OptimizeReorderVertexBuffer();
+        mesh.Optimize();
+
+        return mesh;
+    }
+
 
     void CreateBlockSide(BlockSide side, float x, float y, float z, BlockUVS b)
     {

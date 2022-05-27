@@ -42,24 +42,33 @@ sealed class EnginePlacedSystem : IEcsRunSystem
                 }
             }
 
-            var mesh = meshGenerator.CreateVehicleMesh(ref vehicle, Vector3Int.zero);
+            var mesh = meshGenerator.CreateVehicleMesh(ref vehicle);
             var mat = Object.FindObjectOfType<WorldOfGodcraft>().mat;
 
-            var view = new GameObject($"Vehicle");
+            var root = new GameObject($"Vehicle");
+            var view = new GameObject($"Body");
             var renderer = view.AddComponent<MeshRenderer>();
             var meshFilter = view.AddComponent<MeshFilter>();
-            var collider = view.AddComponent<MeshCollider>();
-            collider.convex = true;
+            var layer = LayerMask.NameToLayer("Vehicle");
+            var child = new GameObject("Collider")
+            {
+                layer = layer
+            };
+            root.transform.position = startPos;
+            view.transform.parent = root.transform;
+            var collider = child.AddComponent<BoxCollider>();
+            collider.center += new Vector3(-0.5f, 0.5f, 0.5f);
             renderer.material = mat;
             meshFilter.mesh = mesh;
-            collider.sharedMesh = mesh;
             view.transform.position = startPos;
-            view.layer = LayerMask.NameToLayer($"Vehicle");
+            view.layer = layer;
+            child.transform.parent = view.transform;
+            child.transform.localPosition = Vector3.zero;
 
             vehicle.renderer = renderer;
             vehicle.meshFilter = meshFilter;
-            vehicle.collider = collider;
             vehicle.pos = view.transform.position;
+            vehicle.colliders = new() { { Vector3.zero, child } };
 
             view.AddComponent<Rigidbody>();
         }

@@ -2,7 +2,6 @@ using LeopotamGroup.Globals;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite;
 using UnityEngine;
-using System.Linq;
 using System.Collections.Generic;
 
 sealed class VehicleHitSystem : IEcsRunSystem
@@ -28,35 +27,74 @@ sealed class VehicleHitSystem : IEcsRunSystem
             {
                 ref var vehicle = ref poolVehicle.Get(entityVehicle);
                 var pos = hitEvent.blockPos;
-                Debug.Log("Offset: " + vehicle.meshOffset);
 
-                if (pos.x >= vehicle.size + vehicle.meshOffset.x || pos.y >= vehicle.size + vehicle.meshOffset.y || pos.z >= vehicle.size + vehicle.meshOffset.z)
+                if (hitEvent.blockID > 0)
                 {
-                    EnlargementBlocksSize(ref vehicle);
+                    var connectedID = GetConnectedID(ref vehicle, ref hitEvent);
+                    
+                    if(connectedID == BLOCKS.ENGINE && hitEvent.blockID == BLOCKS.ACTUATOR)
+                    {
+                        Debug.Log("Туби пязда");
+
+                        ActuatorAttach(ref vehicle, ref hitEvent);
+
+                        return;
+                    }
+
+                    if (pos.x >= vehicle.size + vehicle.meshOffset.x || pos.y >= vehicle.size + vehicle.meshOffset.y || pos.z >= vehicle.size + vehicle.meshOffset.z)
+                    {
+                        EnlargementBlocksSize(ref vehicle);
+                    }
+                    if (pos.x < 0)
+                    {
+                        EnlargementBlocksSize(ref vehicle);
+
+                        ShiftBlocksLeft(ref vehicle);
+                    }
+                    if (pos.y < 0)
+                    {
+                        EnlargementBlocksSize(ref vehicle);
+
+                        ShiftBlocksDown(ref vehicle);
+                    }
+                    if (pos.z < 0)
+                    {
+                        EnlargementBlocksSize(ref vehicle);
+
+                        ShiftBlocksBack(ref vehicle);
+                    }
+
+                    Debug.Log("Offset: " + vehicle.meshOffset);
+                    int x = pos.x - Mathf.RoundToInt(vehicle.meshOffset.x);
+                    int y = pos.y - Mathf.RoundToInt(vehicle.meshOffset.y);
+                    int z = pos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
+                    vehicle.blocks[x][y][z] = hitEvent.blockID;
+
+                    var mesh = meshGenerator.UpdateVehicleMesh(ref vehicle);
+                    vehicle.meshFilter.mesh = mesh;
+                    var collider = new GameObject("Collider");
+                    var component = collider.AddComponent<BoxCollider>();
+                    component.center += new Vector3(-0.5f, 0.5f, 0.5f);
+                    collider.layer = LayerMask.NameToLayer("Vehicle");
+                    collider.transform.parent = vehicle.renderer.transform;
+                    collider.transform.localPosition = pos;
+                    collider.transform.localRotation = Quaternion.identity;
+                    vehicle.colliders.Add(pos, collider);
                 }
-                if (pos.x < 0)
+                else
                 {
-                    EnlargementBlocksSize(ref vehicle);
+                    int x = pos.x - Mathf.RoundToInt(vehicle.meshOffset.x);
+                    int y = pos.y - Mathf.RoundToInt(vehicle.meshOffset.y);
+                    int z = pos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
+                    vehicle.blocks[x][y][z] = hitEvent.blockID;
 
-                    ShiftBlocksLeft(ref vehicle);
+                    var mesh = meshGenerator.UpdateVehicleMesh(ref vehicle);
+                    vehicle.meshFilter.mesh = mesh;
+
+                    var collider = vehicle.colliders[pos];
+                    vehicle.colliders.Remove(pos);
+                    Object.Destroy(collider);
                 }
-                if (pos.y < 0)
-                {
-                    EnlargementBlocksSize(ref vehicle);
-
-                    ShiftBlocksDown(ref vehicle);
-                }
-                if (pos.z < 0)
-                {
-                    EnlargementBlocksSize(ref vehicle);
-
-                    ShiftBlocksBack(ref vehicle);
-                }
-
-
-                var mesh = meshGenerator.UpdateVehicleMesh(ref vehicle);
-                vehicle.meshFilter.mesh = mesh;
-                vehicle.collider.sharedMesh = mesh;
             }
         }
     }
@@ -80,7 +118,7 @@ sealed class VehicleHitSystem : IEcsRunSystem
             {
                 while (vehicle.blocks[i][j].Count < vehicle.size)
                 {
-                    vehicle.blocks[i][j].Add(2);
+                    vehicle.blocks[i][j].Add(0);
                 }
             }
         }
@@ -88,8 +126,8 @@ sealed class VehicleHitSystem : IEcsRunSystem
 
     void ShiftBlocksBack(ref VehicleComponent vehicle)
     {
-        List<List<List<byte>>> blocksCopy = new();
-        blocksCopy.AddRange(vehicle.blocks);
+        //List<List<List<byte>>> blocksCopy = new();
+        //blocksCopy.AddRange(vehicle.blocks);
 
         for (int i = vehicle.size - 1; i >= 0; i--)
         {
@@ -97,20 +135,21 @@ sealed class VehicleHitSystem : IEcsRunSystem
             {
                 for (int z = vehicle.size - 1; z >= 0; z--)
                 {
-                    //Debug.Log(blocksCopy[i][j][z]);
                     if (z - 1 < 0)
                     {
-                        blocksCopy[i][j][z] = 2;
+                        //blocksCopy[i][j][z] = 0;
+                        vehicle.blocks[i][j][z] = 0;
                     }
                     else
                     {
-                        blocksCopy[i][j][z] = vehicle.blocks[i][j][z - 1];
+                        //blocksCopy[i][j][z] = vehicle.blocks[i][j][z - 1];
+                        vehicle.blocks[i][j][z] = vehicle.blocks[i][j][z - 1];
                     }
                 }
             }
         }
 
-        vehicle.blocks = blocksCopy;
+        //vehicle.blocks = blocksCopy;
         vehicle.meshOffset += Vector3.back;
     }
 
@@ -125,10 +164,9 @@ sealed class VehicleHitSystem : IEcsRunSystem
             {
                 for (int z = vehicle.size - 1; z >= 0; z--)
                 {
-                    //Debug.Log(blocksCopy[i][j][z]);
                     if (x - 1 < 0)
                     {
-                        blocksCopy[x][j][z] = 2;
+                        blocksCopy[x][j][z] = 0;
                     }
                     else
                     {
@@ -153,10 +191,9 @@ sealed class VehicleHitSystem : IEcsRunSystem
             {
                 for (int z = vehicle.size - 1; z >= 0; z--)
                 {
-                    //Debug.Log(blocksCopy[i][j][z]);
                     if (y - 1 < 0)
                     {
-                        blocksCopy[x][y][z] = 2;
+                        blocksCopy[x][y][z] = 0;
                     }
                     else
                     {
@@ -167,6 +204,39 @@ sealed class VehicleHitSystem : IEcsRunSystem
         }
 
         vehicle.blocks = blocksCopy;
-        vehicle.meshOffset += Vector3.left;
+        vehicle.meshOffset += Vector3.down;
+    }
+
+    void ActuatorAttach(ref VehicleComponent vehicle, ref VehicleHitEvent hitEvent)
+    {
+        var actuator = new GameObject("Actuator");
+
+        actuator.transform.parent = vehicle.renderer.transform.parent;
+        var body = actuator.AddComponent<Rigidbody>();
+        var collider = actuator.AddComponent<BoxCollider>();
+        collider.center += new Vector3(-0.5f, 0.5f, 0.5f);
+        var layer = LayerMask.NameToLayer("Vehicle");
+        actuator.layer = layer;
+        var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
+        actuator.AddComponent<MeshRenderer>().material = Object.FindObjectOfType<WorldOfGodcraft>().mat;
+        actuator.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMeshBlock(hitEvent.blockID);
+        var pos = vehicle.renderer.transform.position + hitEvent.blockPos;
+        actuator.transform.position = pos;
+
+        var joint = actuator.AddComponent<HingeJoint>();
+        joint.connectedBody = vehicle.renderer.GetComponent<Rigidbody>();
+        joint.anchor = new(-0.5f, 0.5f, 0.5f);
+        joint.axis = hitEvent.blockPos - hitEvent.connectedPos;
+    }
+
+
+    byte GetConnectedID(ref VehicleComponent vehicle, ref VehicleHitEvent hitEvent)
+    {
+        var connectedPos = hitEvent.connectedPos;
+        var x = connectedPos.x - Mathf.RoundToInt(vehicle.meshOffset.x);
+        var y = connectedPos.y - Mathf.RoundToInt(vehicle.meshOffset.y);
+        var z = connectedPos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
+
+        return vehicle.blocks[x][y][z];
     }
 }
