@@ -6,6 +6,9 @@ using System.Collections.Generic;
 
 sealed class VehicleHitSystem : IEcsRunSystem
 {
+    [EcsWorld]
+    readonly EcsWorld ecsWorld = default;
+
     [EcsFilter(typeof(VehicleHitEvent))]
     readonly EcsFilter filterHitEvent = default;
     [EcsFilter(typeof(VehicleComponent))]
@@ -13,88 +16,93 @@ sealed class VehicleHitSystem : IEcsRunSystem
     [EcsPool]
     readonly EcsPool<VehicleComponent> poolVehicle = default;
     [EcsPool]
+    readonly EcsPool<ActuatorComponent> poolActuator = default;
+    [EcsPool]
     readonly EcsPool<VehicleHitEvent> poolHitEvent = default;
     readonly MeshGenerator meshGenerator = Service<MeshGenerator>.Get();
+    readonly ActuatorMeshGenerator actuatorMesh = Service<ActuatorMeshGenerator>.Get();
 
     public void Run(EcsSystems systems)
     {
         foreach (var entity in filterHitEvent)
         {
             ref var hitEvent = ref poolHitEvent.Get(entity);
-            Debug.Log(hitEvent.blockPos);
-
-            foreach (var entityVehicle in filterVehicle)
+            Debug.Log($"Block pos {hitEvent.blockPos}");
+            //Debug.Log(hitEvent.entityVehicle + " Сущность");
+            ref var vehicle = ref poolVehicle.Get(hitEvent.entityVehicle);
+            var pos = hitEvent.blockPos;
+            
+            if (hitEvent.blockID > 0)
             {
-                ref var vehicle = ref poolVehicle.Get(entityVehicle);
-                var pos = hitEvent.blockPos;
+                var connectedID = GetConnectedID(ref vehicle, ref hitEvent);
 
-                if (hitEvent.blockID > 0)
+                if (connectedID == BLOCKS.ENGINE && hitEvent.blockID == BLOCKS.ACTUATOR)
                 {
-                    var connectedID = GetConnectedID(ref vehicle, ref hitEvent);
-                    
-                    if(connectedID == BLOCKS.ENGINE && hitEvent.blockID == BLOCKS.ACTUATOR)
-                    {
-                        Debug.Log("Туби пязда");
+                    Debug.Log("Туби пязда " + vehicle.renderer);
 
-                        ActuatorAttach(ref vehicle, ref hitEvent);
+                    ActuatorAttach(ref vehicle, ref hitEvent);
 
-                        return;
-                    }
+                    return;
+                }
 
-                    if (pos.x >= vehicle.size + vehicle.meshOffset.x || pos.y >= vehicle.size + vehicle.meshOffset.y || pos.z >= vehicle.size + vehicle.meshOffset.z)
-                    {
-                        EnlargementBlocksSize(ref vehicle);
-                    }
-                    if (pos.x < 0)
-                    {
-                        EnlargementBlocksSize(ref vehicle);
+                if (pos.x >= vehicle.size + vehicle.meshOffset.x || pos.y >= vehicle.size + vehicle.meshOffset.y || pos.z >= vehicle.size + vehicle.meshOffset.z)
+                {
+                    EnlargementBlocksSize(ref vehicle);
+                }
+                if (pos.x < 0)
+                {
+                    EnlargementBlocksSize(ref vehicle);
 
-                        ShiftBlocksLeft(ref vehicle);
-                    }
-                    if (pos.y < 0)
-                    {
-                        EnlargementBlocksSize(ref vehicle);
+                    ShiftBlocksLeft(ref vehicle);
+                }
+                if (pos.y < 0)
+                {
+                    EnlargementBlocksSize(ref vehicle);
 
-                        ShiftBlocksDown(ref vehicle);
-                    }
-                    if (pos.z < 0)
-                    {
-                        EnlargementBlocksSize(ref vehicle);
+                    ShiftBlocksDown(ref vehicle);
+                }
+                if (pos.z < 0)
+                {
+                    EnlargementBlocksSize(ref vehicle);
 
-                        ShiftBlocksBack(ref vehicle);
-                    }
+                    ShiftBlocksBack(ref vehicle);
+                }
 
-                    Debug.Log("Offset: " + vehicle.meshOffset);
-                    int x = pos.x - Mathf.RoundToInt(vehicle.meshOffset.x);
-                    int y = pos.y - Mathf.RoundToInt(vehicle.meshOffset.y);
-                    int z = pos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
-                    vehicle.blocks[x][y][z] = hitEvent.blockID;
-
-                    var mesh = meshGenerator.UpdateVehicleMesh(ref vehicle);
-                    vehicle.meshFilter.mesh = mesh;
-                    var collider = new GameObject("Collider");
-                    var component = collider.AddComponent<BoxCollider>();
+                Debug.Log("Offset: " + vehicle.meshOffset);
+                int x = pos.x - Mathf.RoundToInt(vehicle.meshOffset.x);
+                int y = pos.y - Mathf.RoundToInt(vehicle.meshOffset.y);
+                int z = pos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
+                vehicle.blocks[x][y][z] = hitEvent.blockID;
+                var isActuator = vehicle.renderer.GetComponent<HingeJoint>();
+                var mesh = meshGenerator.UpdateVehicleMesh(ref vehicle);
+                if (isActuator)
+                {
+                    mesh = actuatorMesh.UpdateVehicleMesh(ref vehicle);
+                }
+                vehicle.meshFilter.mesh = mesh;
+                var collider = new GameObject("Collider");
+                var component = collider.AddComponent<BoxCollider>();
+                if (!isActuator)// HOT FIX
                     component.center += new Vector3(-0.5f, 0.5f, 0.5f);
-                    collider.layer = LayerMask.NameToLayer("Vehicle");
-                    collider.transform.parent = vehicle.renderer.transform;
-                    collider.transform.localPosition = pos;
-                    collider.transform.localRotation = Quaternion.identity;
-                    vehicle.colliders.Add(pos, collider);
-                }
-                else
-                {
-                    int x = pos.x - Mathf.RoundToInt(vehicle.meshOffset.x);
-                    int y = pos.y - Mathf.RoundToInt(vehicle.meshOffset.y);
-                    int z = pos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
-                    vehicle.blocks[x][y][z] = hitEvent.blockID;
+                collider.layer = LayerMask.NameToLayer("Vehicle");
+                collider.transform.parent = vehicle.renderer.transform;
+                collider.transform.localPosition = pos;
+                collider.transform.localRotation = Quaternion.identity;
+                vehicle.colliders.Add(pos, collider);
+            }
+            else
+            {
+                int x = pos.x - Mathf.RoundToInt(vehicle.meshOffset.x);
+                int y = pos.y - Mathf.RoundToInt(vehicle.meshOffset.y);
+                int z = pos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
+                vehicle.blocks[x][y][z] = hitEvent.blockID;
 
-                    var mesh = meshGenerator.UpdateVehicleMesh(ref vehicle);
-                    vehicle.meshFilter.mesh = mesh;
+                var mesh = meshGenerator.UpdateVehicleMesh(ref vehicle);
+                vehicle.meshFilter.mesh = mesh;
 
-                    var collider = vehicle.colliders[pos];
-                    vehicle.colliders.Remove(pos);
-                    Object.Destroy(collider);
-                }
+                var collider = vehicle.colliders[pos];
+                vehicle.colliders.Remove(pos);
+                Object.Destroy(collider);
             }
         }
     }
@@ -103,7 +111,7 @@ sealed class VehicleHitSystem : IEcsRunSystem
     {
         vehicle.size++;
         vehicle.blocks.Add(new());
-
+        Debug.Log("Расширение");
         for (int i = 0; i < vehicle.size; i++)
         {
             while (vehicle.blocks[i].Count < vehicle.size)
@@ -209,24 +217,60 @@ sealed class VehicleHitSystem : IEcsRunSystem
 
     void ActuatorAttach(ref VehicleComponent vehicle, ref VehicleHitEvent hitEvent)
     {
-        var actuator = new GameObject("Actuator");
+        var e = ecsWorld.NewEntity();
+        ref var component = ref poolVehicle.Add(e);
+        component.size = 1;
+        component.blocks = new();
+        component.blocks.Add(new());
+        for (int x = 0; x < component.size; x++)
+        {
+            component.blocks[x] = new();
+            component.blocks[x].Add(new());
 
+            for (int y = 0; y < component.size; y++)
+            {
+                component.blocks[x][y] = new();
+                component.blocks[x][y].Add(new());
+
+                for (int z = 0; z < component.size; z++)
+                {
+                    component.blocks[x][y][z] = BLOCKS.ACTUATOR;
+                }
+            }
+        }
+
+        var mesh = actuatorMesh.CreateMesh(ref component);//meshGenerator.CreateVehicleMesh(ref component);
+        var mat = Object.FindObjectOfType<WorldOfGodcraft>().mat;
+
+        var actuator = new GameObject("Actuator");
+        var colliderView = new GameObject("Collider");
+        var collider = colliderView.AddComponent<BoxCollider>();
         actuator.transform.parent = vehicle.renderer.transform.parent;
+        colliderView.transform.parent = actuator.transform;
         var body = actuator.AddComponent<Rigidbody>();
-        var collider = actuator.AddComponent<BoxCollider>();
-        collider.center += new Vector3(-0.5f, 0.5f, 0.5f);
+        //collider.center += new Vector3(-0.5f, 0.5f, 0.5f);
         var layer = LayerMask.NameToLayer("Vehicle");
         actuator.layer = layer;
-        var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
-        actuator.AddComponent<MeshRenderer>().material = Object.FindObjectOfType<WorldOfGodcraft>().mat;
-        actuator.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMeshBlock(hitEvent.blockID);
+        colliderView.layer = layer;
+        var renderer = actuator.AddComponent<MeshRenderer>();
+        renderer.material = mat;
+        var meshFilter = actuator.AddComponent<MeshFilter>();
+        meshFilter.mesh = mesh;
         var pos = vehicle.renderer.transform.position + hitEvent.blockPos;
-        actuator.transform.position = pos;
+        actuator.transform.position = hitEvent.globalPos;
+        actuator.transform.rotation = Quaternion.Euler(hitEvent.globalRot);
 
         var joint = actuator.AddComponent<HingeJoint>();
         joint.connectedBody = vehicle.renderer.GetComponent<Rigidbody>();
-        joint.anchor = new(-0.5f, 0.5f, 0.5f);
+        joint.anchor = Vector3.zero;
         joint.axis = hitEvent.blockPos - hitEvent.connectedPos;
+
+        actuator.AddComponent<View>().EntityID = e;
+
+        component.renderer = renderer;
+        component.meshFilter = meshFilter;
+        component.pos = actuator.transform.position;
+        component.colliders = new() { { Vector3.zero, colliderView } };
     }
 
 

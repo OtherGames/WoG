@@ -10,9 +10,9 @@ sealed class EnginePlacedSystem : IEcsRunSystem
     [EcsPool]
     readonly EcsPool<EnginePlaced> poolPlaced = default;
     [EcsPool]
-    EcsPool<VehicleComponent> poolVehicle = default;
+    readonly EcsPool<VehicleComponent> poolVehicle = default;
 
-    MeshGenerator meshGenerator = Service<MeshGenerator>.Get();
+    readonly MeshGenerator meshGenerator = Service<MeshGenerator>.Get();
 
     public void Run(EcsSystems systems)
     {
@@ -56,6 +56,7 @@ sealed class EnginePlacedSystem : IEcsRunSystem
             };
             root.transform.position = startPos;
             view.transform.parent = root.transform;
+            view.AddComponent<View>().EntityID = e;
             var collider = child.AddComponent<BoxCollider>();
             collider.center += new Vector3(-0.5f, 0.5f, 0.5f);
             renderer.material = mat;

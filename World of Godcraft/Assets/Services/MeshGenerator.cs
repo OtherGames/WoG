@@ -9,9 +9,9 @@ public class MeshGenerator
     Dictionary<BlockSide, List<Vector3>> blockVerticesSet;
     Dictionary<BlockSide, List<int>> blockTrianglesSet;
 
-    List<Vector3> vertices = new List<Vector3>();
-    List<int> triangulos = new List<int>();
-    List<Vector2> uvs = new List<Vector2>();
+    List<Vector3> vertices = new();
+    List<int> triangulos = new();
+    List<Vector2> uvs = new();
 
     public void Init()
     {

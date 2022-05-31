@@ -365,45 +365,79 @@ public class PlayerCharacter : MonoBehaviour
         var rotX = Mathf.RoundToInt(highlightSphere.localRotation.eulerAngles.x);
         var rotY = Mathf.RoundToInt(highlightSphere.localRotation.eulerAngles.y);
         var rotZ = Mathf.RoundToInt(highlightSphere.localRotation.eulerAngles.z);
-        
-        if (optaX > 0)
+        var isActuator = hit.transform.gameObject.name == "Actuator";
+        if (isActuator)
         {
-            localCubePos.x = Mathf.RoundToInt(localX) + 0.5f;
-        }
-        else
-        {
-            localCubePos.x = Mathf.RoundToInt(localX) - 0.5f;
-        }
-        if(rotY == 270 && rotX != 270)
-        {
-            localCubePos.x = Mathf.RoundToInt(localX) + 0.5f;
-        }
+            if (rotY == 270 && rotX != 270)
+            {
+                localCubePos.x = Mathf.RoundToInt(localX) + 1;
+            }
+            else
+            {
+                localCubePos.x = Mathf.RoundToInt(localX);
+            }
 
-        if(optaY > 0)
-        {
-            localCubePos.y = Mathf.RoundToInt(localY) + 0.5f;
-        }
-        else
-        {
-            localCubePos.y = Mathf.RoundToInt(localY) - 0.5f;
-        }
-        if(rotX == 90)
-        {
-            localCubePos.y = Mathf.RoundToInt(localY) + 0.5f;
-        }
-        
+            if (rotX == 90)
+            {
+                localCubePos.y = Mathf.RoundToInt(localY) + 1;
+            }
+            else
+            {
+                localCubePos.y = Mathf.RoundToInt(localY);
+            }
 
-        if (optaZ > 0)
-        {
-            localCubePos.z = Mathf.RoundToInt(localZ) + 0.5f;
+            if (rotY == 180 && (rotX == 0 || rotX == 360))
+            {
+                localCubePos.z = Mathf.RoundToInt(localZ) + 1;
+            }
+            else
+            {
+                localCubePos.z = Mathf.RoundToInt(localZ);
+            }
+
+            
         }
         else
         {
-            localCubePos.z = Mathf.RoundToInt(localZ) - 0.5f;
-        }
-        if (rotY == 180 && (rotX == 0 || rotX == 360))
-        {
-            localCubePos.z = Mathf.RoundToInt(localZ) + 0.5f;
+            if (optaX > 0)
+            {
+                localCubePos.x = Mathf.RoundToInt(localX) + 0.5f;
+            }
+            else
+            {
+                localCubePos.x = Mathf.RoundToInt(localX) - 0.5f;
+            }
+            if (rotY == 270 && rotX != 270)
+            {
+                localCubePos.x = Mathf.RoundToInt(localX) + 0.5f;
+            }
+
+            if (optaY > 0)
+            {
+                localCubePos.y = Mathf.RoundToInt(localY) + 0.5f;
+            }
+            else
+            {
+                localCubePos.y = Mathf.RoundToInt(localY) - 0.5f;
+            }
+            if (rotX == 90)
+            {
+                localCubePos.y = Mathf.RoundToInt(localY) + 0.5f;
+            }
+
+
+            if (optaZ > 0)
+            {
+                localCubePos.z = Mathf.RoundToInt(localZ) + 0.5f;
+            }
+            else
+            {
+                localCubePos.z = Mathf.RoundToInt(localZ) - 0.5f;
+            }
+            if (rotY == 180 && (rotX == 0 || rotX == 360))
+            {
+                localCubePos.z = Mathf.RoundToInt(localZ) + 0.5f;
+            }
         }
 
         //var localX = highlightSphere.localPosition.x - 0.0001f;
@@ -463,17 +497,22 @@ public class PlayerCharacter : MonoBehaviour
 
             if (blockID == 0)
                 return;
-
+            
             var e = ecsWorld.NewEntity();
             var pool = ecsWorld.GetPool<VehicleHitEvent>();
             ref var hitEvent = ref pool.Add(e);
-            var blockPos = localCubePos - new Vector3(-0.5f, 0.5f, 0.5f);
+            var blockPos = localCubePos;
+            if (!isActuator)
+            {
+                blockPos = localCubePos - new Vector3(-0.5f, 0.5f, 0.5f);
+            }
+            
             var connectedPos = blockPos;
             rotX = Mathf.RoundToInt((float)rotX / 90f) * 90;
             rotY = Mathf.RoundToInt((float)rotY / 90f) * 90;
             rotZ = Mathf.RoundToInt((float)rotZ / 90f) * 90;
             print($"Rotation {rotX} : {rotY} : {rotZ}");
-
+            print($"Block pos, до направления {blockPos} || {localCubePos}");
             if (rotX == 0 && rotY == 180)
             {
                 blockPos += Vector3.back;
@@ -501,7 +540,10 @@ public class PlayerCharacter : MonoBehaviour
 
             hitEvent.connectedPos = new Vector3Int(Mathf.RoundToInt(connectedPos.x), Mathf.RoundToInt(connectedPos.y), Mathf.RoundToInt(connectedPos.z)); ;
             hitEvent.blockPos = new Vector3Int(Mathf.RoundToInt(blockPos.x), Mathf.RoundToInt(blockPos.y), Mathf.RoundToInt(blockPos.z));
+            hitEvent.globalPos = highlightCube.position + hit.normal;
+            hitEvent.globalRot = hit.transform.rotation.eulerAngles;//hit.normal;
             hitEvent.blockID = blockID;
+            hitEvent.entityVehicle = hit.transform.GetComponent<View>().EntityID;
         }
         if (Input.GetMouseButtonDown(0))
         {
@@ -511,6 +553,7 @@ public class PlayerCharacter : MonoBehaviour
             var blockPos = localCubePos - new Vector3(-0.5f, 0.5f, 0.5f);
             hitEvent.blockPos = new Vector3Int(Mathf.RoundToInt(blockPos.x), Mathf.RoundToInt(blockPos.y), Mathf.RoundToInt(blockPos.z));
             hitEvent.blockID = 0;
+            hitEvent.entityVehicle = hit.transform.GetComponent<View>().EntityID;
         }
 
     }

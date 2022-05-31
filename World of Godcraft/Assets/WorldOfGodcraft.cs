@@ -23,6 +23,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
         Service<MeshGenerator>.Set(meshGenerator);
         Service<PrefabsHolder>.Set(GetComponent<PrefabsHolder>());
         Service<DropedBlockGenerator>.Set(new());
+        Service<ActuatorMeshGenerator>.Set(new());
         Service<Craft>.Set(new());
 
         var world = new World();
