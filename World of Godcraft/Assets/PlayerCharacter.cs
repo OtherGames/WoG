@@ -550,7 +550,11 @@ public class PlayerCharacter : MonoBehaviour
             var e = ecsWorld.NewEntity();
             var pool = ecsWorld.GetPool<VehicleHitEvent>();
             ref var hitEvent = ref pool.Add(e);
-            var blockPos = localCubePos - new Vector3(-0.5f, 0.5f, 0.5f);
+            var blockPos = localCubePos;
+            if (!isActuator)
+            {
+                blockPos = localCubePos - new Vector3(-0.5f, 0.5f, 0.5f);
+            }
             hitEvent.blockPos = new Vector3Int(Mathf.RoundToInt(blockPos.x), Mathf.RoundToInt(blockPos.y), Mathf.RoundToInt(blockPos.z));
             hitEvent.blockID = 0;
             hitEvent.entityVehicle = hit.transform.GetComponent<View>().EntityID;

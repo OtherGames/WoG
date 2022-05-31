@@ -83,10 +83,14 @@ sealed class VehicleHitSystem : IEcsRunSystem
                 int z = pos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
                 vehicle.blocks[x][y][z] = hitEvent.blockID;
                 var isActuator = vehicle.renderer.GetComponent<HingeJoint>();
-                var mesh = meshGenerator.UpdateVehicleMesh(ref vehicle);
+                Mesh mesh; 
                 if (isActuator)
                 {
                     mesh = actuatorMesh.UpdateVehicleMesh(ref vehicle);
+                }
+                else
+                {
+                    mesh = meshGenerator.UpdateVehicleMesh(ref vehicle);
                 }
                 vehicle.meshFilter.mesh = mesh;
                 var collider = new GameObject("Collider");
@@ -105,8 +109,16 @@ sealed class VehicleHitSystem : IEcsRunSystem
                 int y = pos.y - Mathf.RoundToInt(vehicle.meshOffset.y);
                 int z = pos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
                 vehicle.blocks[x][y][z] = hitEvent.blockID;
-
-                var mesh = meshGenerator.UpdateVehicleMesh(ref vehicle);
+                var isActuator = vehicle.renderer.GetComponent<HingeJoint>();
+                Mesh mesh;
+                if (isActuator)
+                {
+                    mesh = actuatorMesh.UpdateVehicleMesh(ref vehicle);
+                }
+                else
+                {
+                    mesh = meshGenerator.UpdateVehicleMesh(ref vehicle);
+                }
                 vehicle.meshFilter.mesh = mesh;
 
                 var collider = vehicle.colliders[pos];
