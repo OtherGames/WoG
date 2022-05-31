@@ -389,5 +389,34 @@ public class HUD : MonoBehaviour
                 joint.motor = motor;
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            byte ID = BLOCKS.ACTUATOR_ROTARY;
+            var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
+            var dropedBlock = new GameObject("Engine opta");
+            dropedBlock.AddComponent<MeshRenderer>().material = FindObjectOfType<WorldOfGodcraft>().mat;
+            dropedBlock.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMesh(ID);
+            dropedBlock.AddComponent<DropedBlock>();
+            dropedBlock.transform.localScale /= 3f;
+            dropedBlock.layer = 5;
+
+            var entity = ecsWorld.NewEntity();
+            var pool = ecsWorld.GetPool<InventoryItem>();
+            pool.Add(entity);
+            ref var component = ref pool.Get(entity);
+            component.blockID = ID;
+            component.view = dropedBlock;
+            component.count = 1;
+            component.itemType = ItemType.Block;
+
+            ecsWorld.GetPool<ItemQuickInventory>().Add(entity);
+
+            var quick = FindObjectOfType<QuickInventory>();
+            var cell = quick.Cells.Find(c => c.EntityItem == null);
+            cell.Init(entity, ref component);
+            quick.UpdateItems();
+
+        }
     }
 }

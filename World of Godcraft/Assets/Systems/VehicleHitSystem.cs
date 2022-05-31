@@ -45,6 +45,15 @@ sealed class VehicleHitSystem : IEcsRunSystem
                     return;
                 }
 
+                if (connectedID == BLOCKS.ENGINE && hitEvent.blockID == BLOCKS.ACTUATOR_ROTARY)
+                {
+                    Debug.Log("Туби пязда " + vehicle.renderer);
+
+                    ActuatorRotaryAttach(ref vehicle, ref hitEvent);
+
+                    return;
+                }
+
                 if (pos.x >= vehicle.size + vehicle.meshOffset.x || pos.y >= vehicle.size + vehicle.meshOffset.y || pos.z >= vehicle.size + vehicle.meshOffset.z)
                 {
                     EnlargementBlocksSize(ref vehicle);
@@ -273,6 +282,78 @@ sealed class VehicleHitSystem : IEcsRunSystem
         component.colliders = new() { { Vector3.zero, colliderView } };
     }
 
+    void ActuatorRotaryAttach(ref VehicleComponent vehicle, ref VehicleHitEvent hitEvent)
+    {
+        var layer = LayerMask.NameToLayer("Vehicle");
+
+        var rotary = new GameObject("Rotary") { layer = layer };
+        rotary.transform.parent = vehicle.renderer.transform.parent;
+        rotary.transform.position = hitEvent.globalPos;
+        rotary.transform.rotation = Quaternion.Euler(hitEvent.globalRot);
+        var rotaryJoint = rotary.AddComponent<HingeJoint>();
+        rotaryJoint.connectedBody = vehicle.renderer.GetComponent<Rigidbody>();
+        rotaryJoint.anchor = Vector3.zero;
+        rotaryJoint.axis = Vector3.up;
+        rotaryJoint.useLimits = true;
+        var limits = rotaryJoint.limits;
+        limits.min =-38;
+        limits.max = 38;
+        rotaryJoint.limits = limits;
+        var rotaryBody = rotaryJoint.GetComponent<Rigidbody>();
+        rotaryBody.mass = .3f;
+        var actuator = new GameObject("Actuator") { layer = layer };
+        var colliderDummy = new GameObject("Collider") { layer = layer };
+        
+        actuator.transform.parent = vehicle.renderer.transform.parent;
+        actuator.transform.position = hitEvent.globalPos;
+        actuator.transform.rotation = Quaternion.Euler(hitEvent.globalRot);
+        colliderDummy.transform.parent = actuator.transform;
+        colliderDummy.transform.localPosition = Vector3.zero;
+        var collider = colliderDummy.AddComponent<BoxCollider>();
+
+        var actuatorJoint = actuator.AddComponent<HingeJoint>();
+        actuatorJoint.connectedBody = rotaryBody;
+        actuatorJoint.anchor = Vector3.zero;
+        actuatorJoint.axis = hitEvent.blockPos - hitEvent.connectedPos;
+        actuatorJoint.GetComponent<Rigidbody>().mass = .5f;
+        var e = ecsWorld.NewEntity();
+        ref var component = ref poolVehicle.Add(e);
+        component.size = 1;
+        component.blocks = new();
+        component.blocks.Add(new());
+        for (int x = 0; x < component.size; x++)
+        {
+            component.blocks[x] = new();
+            component.blocks[x].Add(new());
+
+            for (int y = 0; y < component.size; y++)
+            {
+                component.blocks[x][y] = new();
+                component.blocks[x][y].Add(new());
+
+                for (int z = 0; z < component.size; z++)
+                {
+                    component.blocks[x][y][z] = hitEvent.blockID;
+                }
+            }
+        }
+
+        var mesh = actuatorMesh.CreateMesh(ref component);//meshGenerator.CreateVehicleMesh(ref component);
+        var mat = Object.FindObjectOfType<WorldOfGodcraft>().mat;
+
+        var renderer = actuator.AddComponent<MeshRenderer>();
+        renderer.material = mat;
+        var meshFilter = actuator.AddComponent<MeshFilter>();
+        meshFilter.mesh = mesh;
+        var pos = vehicle.renderer.transform.position + hitEvent.blockPos;
+
+        actuator.AddComponent<View>().EntityID = e;
+
+        component.renderer = renderer;
+        component.meshFilter = meshFilter;
+        component.pos = actuator.transform.position;
+        component.colliders = new() { { Vector3.zero, colliderDummy } };
+    }
 
     byte GetConnectedID(ref VehicleComponent vehicle, ref VehicleHitEvent hitEvent)
     {

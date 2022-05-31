@@ -11,4 +11,5 @@ public static class BLOCKS
     public const byte GRAVEL = 36;
     public const byte ENGINE = 88;
     public const byte ACTUATOR = 90;
+    public const byte ACTUATOR_ROTARY = 91;
 }
