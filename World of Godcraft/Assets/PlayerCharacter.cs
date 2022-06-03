@@ -559,7 +559,26 @@ public class PlayerCharacter : MonoBehaviour
             hitEvent.blockID = 0;
             hitEvent.entityVehicle = hit.transform.GetComponent<View>().EntityID;
         }
+        
+    }
 
+    byte GetBlockIDByPosition(Vector3 position)
+    {
+        byte result = 0;
+
+
+
+        //// зачем-то нужно прибавл€ть 1 по оси X, хз почему так, но именно так работает
+        //ref var chunck = ref Service<World>.Get().GetChunk(position + Vector3.right);
+        //var pos = chunck.renderer.transform.position;
+
+        //// зачем-то нужно прибавл€ть 1 по оси X, хз почему так, но именно так работает
+        //int xBlock = x - Mathf.FloorToInt(pos.x) + 1;
+        //int yBlock = y - Mathf.FloorToInt(pos.y);
+        //int zBlock = z - Mathf.FloorToInt(pos.z);
+        //byte hitBlockID = chunck.blocks[xBlock, yBlock, zBlock];
+
+        return result;
     }
 
     byte GetBlockIDQuickSlot()

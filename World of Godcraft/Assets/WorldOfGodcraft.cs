@@ -59,6 +59,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new ProjectileSystem())
             .Add(new EnginePlacedSystem())
             .Add(new VehicleHitSystem())
+            .Add(new CheckVehicleIsGround())
 
             // register additional worlds here, for example:
             // .AddWorld (new EcsWorld (), "events")

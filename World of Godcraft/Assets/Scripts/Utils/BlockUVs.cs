@@ -83,6 +83,8 @@ public class BlockUVS
                 return new BlockUVS(5, 2);
             case 91:// Actuator Rotary
                 return new BlockUVS(5, 1);
+            case 92:// Steering 
+                return new BlockUVS(4, 2);
             case 100:// Простой верстак
                 return new BlockUVS(15, 0);
             case 101:// Верстак
