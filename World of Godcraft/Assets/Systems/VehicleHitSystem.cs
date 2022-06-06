@@ -285,6 +285,8 @@ sealed class VehicleHitSystem : IEcsRunSystem
         joint.connectedBody = vehicle.renderer.GetComponent<Rigidbody>();
         joint.anchor = Vector3.zero;
         joint.axis = hitEvent.blockPos - hitEvent.connectedPos;
+        joint.useMotor = true;
+        (vehicle.view as VehicleView).actuators.Add(joint);
 
         actuator.AddComponent<View>().EntityID = e;
 
@@ -307,6 +309,7 @@ sealed class VehicleHitSystem : IEcsRunSystem
         rotaryJoint.anchor = Vector3.zero;
         rotaryJoint.axis = Vector3.up;
         rotaryJoint.useLimits = true;
+        rotaryJoint.useMotor = true;
         var limits = rotaryJoint.limits;
         limits.min =-38;
         limits.max = 38;
@@ -328,6 +331,11 @@ sealed class VehicleHitSystem : IEcsRunSystem
         actuatorJoint.anchor = Vector3.zero;
         actuatorJoint.axis = hitEvent.blockPos - hitEvent.connectedPos;
         actuatorJoint.GetComponent<Rigidbody>().mass = .5f;
+        actuatorJoint.useMotor = true;
+
+        (vehicle.view as VehicleView).actuators.Add(actuatorJoint);
+        (vehicle.view as VehicleView).rotary.Add(rotaryJoint);
+
         var e = ecsWorld.NewEntity();
         ref var component = ref poolVehicle.Add(e);
         component.size = 1;

@@ -355,7 +355,7 @@ public class HUD : MonoBehaviour
             ref var component = ref pool.Get(entity);
             component.blockID = ID;
             component.view = dropedBlock;
-            component.count = 1;
+            component.count = 2;
             component.itemType = ItemType.Block;
 
             ecsWorld.GetPool<ItemQuickInventory>().Add(entity);
@@ -407,7 +407,7 @@ public class HUD : MonoBehaviour
             ref var component = ref pool.Get(entity);
             component.blockID = ID;
             component.view = dropedBlock;
-            component.count = 1;
+            component.count = 2;
             component.itemType = ItemType.Block;
 
             ecsWorld.GetPool<ItemQuickInventory>().Add(entity);

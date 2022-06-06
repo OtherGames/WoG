@@ -5,6 +5,7 @@ struct VehicleComponent
 {
     public MeshRenderer renderer;
     public MeshFilter meshFilter;
+    public View view;
     public Vector3 meshOffset;
     public Vector3 pos;
     public int size;

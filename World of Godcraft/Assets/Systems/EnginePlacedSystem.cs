@@ -56,7 +56,8 @@ sealed class EnginePlacedSystem : IEcsRunSystem
             };
             root.transform.position = startPos;
             view.transform.parent = root.transform;
-            view.AddComponent<View>().EntityID = e;
+            var monobeh = view.AddComponent<VehicleView>();
+            monobeh.EntityID = e;
             var collider = child.AddComponent<BoxCollider>();
             collider.center += new Vector3(-0.5f, 0.5f, 0.5f);
             renderer.material = mat;
@@ -68,10 +69,14 @@ sealed class EnginePlacedSystem : IEcsRunSystem
 
             vehicle.renderer = renderer;
             vehicle.meshFilter = meshFilter;
+            vehicle.view = monobeh;
             vehicle.pos = view.transform.position;
             vehicle.colliders = new() { { Vector3.zero, child } };
 
-            view.AddComponent<Rigidbody>();
+            var viewBody = view.AddComponent<Rigidbody>();
+
+            var fixedJoint = root.AddComponent<FixedJoint>();
+            fixedJoint.connectedBody = viewBody;
         }
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 
-public class GlobalEvents 
+public class GlobalEvents
 {
     public class ItemTaked : UnityEvent { }
 
@@ -30,4 +30,10 @@ public class GlobalEvents
 
     //-----------------------------------------------------------------------
 
+    public class OnSteeringVehicle : UnityEvent<VehicleView> { }
+
+    public static OnSteeringVehicle onSteeringVehicle = new();
+
+    //-----------------------------------------------------------------------
 }
+

@@ -393,9 +393,7 @@ public class PlayerCharacter : MonoBehaviour
             else
             {
                 localCubePos.z = Mathf.RoundToInt(localZ);
-            }
-
-            
+            }            
         }
         else
         {
@@ -493,21 +491,35 @@ public class PlayerCharacter : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
-            var blockID = GetBlockIDQuickSlot();
-
-            if (blockID == 0)
-                return;
-            
-            var e = ecsWorld.NewEntity();
-            var pool = ecsWorld.GetPool<VehicleHitEvent>();
-            ref var hitEvent = ref pool.Add(e);
             var blockPos = localCubePos;
             if (!isActuator)
             {
                 blockPos = localCubePos - new Vector3(-0.5f, 0.5f, 0.5f);
             }
-            
+
             var connectedPos = blockPos;
+
+            var hitBlockID = GetBlockIDByPosition(connectedPos, hit);
+            if(hitBlockID == BLOCKS.STEERING)
+            {
+                var view = hit.transform.GetComponent<VehicleView>();
+                if (view)
+                {
+                    var fpc = GetComponent<FirstPersonController>();
+                    fpc.isSteering = true;
+                    GlobalEvents.onSteeringVehicle?.Invoke(view);
+                }
+                return;
+            }
+
+            var quickSlotBlockID = GetBlockIDQuickSlot();
+            if (quickSlotBlockID == 0)
+                return;
+
+            var e = ecsWorld.NewEntity();
+            var pool = ecsWorld.GetPool<VehicleHitEvent>();
+            ref var hitEvent = ref pool.Add(e);
+
             rotX = Mathf.RoundToInt((float)rotX / 90f) * 90;
             rotY = Mathf.RoundToInt((float)rotY / 90f) * 90;
             rotZ = Mathf.RoundToInt((float)rotZ / 90f) * 90;
@@ -542,7 +554,7 @@ public class PlayerCharacter : MonoBehaviour
             hitEvent.blockPos = new Vector3Int(Mathf.RoundToInt(blockPos.x), Mathf.RoundToInt(blockPos.y), Mathf.RoundToInt(blockPos.z));
             hitEvent.globalPos = highlightCube.position + hit.normal;
             hitEvent.globalRot = hit.transform.rotation.eulerAngles;//hit.normal;
-            hitEvent.blockID = blockID;
+            hitEvent.blockID = quickSlotBlockID;
             hitEvent.entityVehicle = hit.transform.GetComponent<View>().EntityID;
         }
         if (Input.GetMouseButtonDown(0))
@@ -562,23 +574,15 @@ public class PlayerCharacter : MonoBehaviour
         
     }
 
-    byte GetBlockIDByPosition(Vector3 position)
+    byte GetBlockIDByPosition(Vector3 position, RaycastHit hit)
     {
-        byte result = 0;
-
-
-
-        //// зачем-то нужно прибавл€ть 1 по оси X, хз почему так, но именно так работает
-        //ref var chunck = ref Service<World>.Get().GetChunk(position + Vector3.right);
-        //var pos = chunck.renderer.transform.position;
-
-        //// зачем-то нужно прибавл€ть 1 по оси X, хз почему так, но именно так работает
-        //int xBlock = x - Mathf.FloorToInt(pos.x) + 1;
-        //int yBlock = y - Mathf.FloorToInt(pos.y);
-        //int zBlock = z - Mathf.FloorToInt(pos.z);
-        //byte hitBlockID = chunck.blocks[xBlock, yBlock, zBlock];
-
-        return result;
+        var entityVehicle = hit.transform.GetComponent<View>().EntityID;
+        ref var vehicle = ref ecsWorld.GetPool<VehicleComponent>().Get(entityVehicle);
+        int x = Mathf.RoundToInt(position.x - vehicle.meshOffset.x);
+        int y = Mathf.RoundToInt(position.y - vehicle.meshOffset.y);
+        int z = Mathf.RoundToInt(position.z - vehicle.meshOffset.z);
+       
+        return vehicle.blocks[x][y][z];
     }
 
     byte GetBlockIDQuickSlot()
