@@ -60,6 +60,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .Add(new EnginePlacedSystem())
             .Add(new VehicleHitSystem())
             .Add(new CheckVehicleIsGround())
+            .Add(new DestroyActuatorJointsSystem())
 
             // register additional worlds here, for example:
             // .AddWorld (new EcsWorld (), "events")
@@ -80,6 +81,7 @@ sealed class WorldOfGodcraft : MonoBehaviour
             .DelHere<GunFired>()
             .DelHere<EnginePlaced>()
             .DelHere<VehicleHitEvent>()
+            .DelHere<EngineMined>()
 
             .Inject(world)
             .Init();

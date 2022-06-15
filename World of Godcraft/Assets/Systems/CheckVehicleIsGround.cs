@@ -38,9 +38,7 @@ sealed class CheckVehicleIsGround : IEcsRunSystem
 
                     var move = vehicleBody.velocity;
                     move.y = 0;
-                    characterController.Move(move * Time.deltaTime * 1.0f);
-
-                    //Debug.Log(vehicleBody.velocity);
+                    characterController.Move(move * Time.deltaTime);
                 }
             }
             else

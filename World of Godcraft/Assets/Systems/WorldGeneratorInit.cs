@@ -318,7 +318,7 @@ sealed class WorldGeneratorInit : IEcsInitSystem
 
     public byte GeneratedBlockID(int x, int y, int z)
     {
-        Random.InitState(505);
+        Random.InitState(888);
 
         // ============== Генерация Гор =============
         var k = 10000000;// чем больше тем реже

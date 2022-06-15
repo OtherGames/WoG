@@ -119,17 +119,33 @@ public class HUD : MonoBehaviour
             blockWriteMode.color = WriteMode ? redColorMode : new Color(0, 0, 0, 0);
         }
 
+        InputTemporary();
+
+        inventory.ScreenScale = transform.lossyScale.x;
+        workbenchSimle.ScreenScale = transform.lossyScale.x;
+        workbench.ScreenScale = transform.lossyScale.x;
+        furnace.ScreenScale = transform.lossyScale.x;
+
+        UpdateIndicators();
+        UpdatePickabaleLabel();
+    }
+
+    void InputTemporary()
+    {
         if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.I))
         {
             if (!player)
                 player = FindObjectOfType<PlayerCharacter>();
+
+            if (player.FPC.isSteering)
+                return;
 
             if (inventory.IsShowed)
             {
                 inventory.Hide();
                 player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(true);
             }
-            else if(!workbenchSimle.IsShowed && !workbench.IsShowed && !furnace.IsShowed)
+            else if (!workbenchSimle.IsShowed && !workbench.IsShowed && !furnace.IsShowed)
             {
                 inventory.Show(default);
                 player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(false);
@@ -153,14 +169,6 @@ public class HUD : MonoBehaviour
                 player.GetComponent<FirstPersonController>().MouseLook.SetCursorLock(true);
             }
         }
-
-        inventory.ScreenScale = transform.lossyScale.x;
-        workbenchSimle.ScreenScale = transform.lossyScale.x;
-        workbench.ScreenScale = transform.lossyScale.x;
-        furnace.ScreenScale = transform.lossyScale.x;
-
-        UpdateIndicators();
-        UpdatePickabaleLabel();
     }
 
     private void UpdateIndicators()

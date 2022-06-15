@@ -32,9 +32,11 @@ public class PlayerCharacter : MonoBehaviour
     Transform highlightCube;
 
     public GunView GunView { get; set; }
+    public FirstPersonController FPC => fpc;
 
     Transform highlight;
     WorldOfGodcraft godcraft;
+    FirstPersonController fpc;
     EcsPool<GunComponent> poolGuns;
     EcsPool<GunFired> poolFired;
     new PhotonView networkView;
@@ -55,6 +57,7 @@ public class PlayerCharacter : MonoBehaviour
     void Start()
     {
         networkView = GetComponent<PhotonView>();
+        fpc = GetComponent<FirstPersonController>();
 
         if (!networkView.IsMine)
         {
@@ -96,6 +99,8 @@ public class PlayerCharacter : MonoBehaviour
         SaveController();
     }
 
+    public void SetSteeringMode(bool enabled) => fpc.isSteering = enabled;
+
     void CheckQuickSlots()
     {
         if (idxQuickSlot != InputHandler.Instance.quickSlotID - 1)
@@ -133,7 +138,7 @@ public class PlayerCharacter : MonoBehaviour
 
     void Slot_Updated()
     {
-        print("Быстрой слот обновлен: " + selectedItemID);
+        //print("Быстрой слот обновлен: " + selectedItemID);
 
         ClearView();
 
@@ -567,7 +572,9 @@ public class PlayerCharacter : MonoBehaviour
             {
                 blockPos = localCubePos - new Vector3(-0.5f, 0.5f, 0.5f);
             }
+            hitEvent.connectedPos = new Vector3Int(Mathf.RoundToInt(blockPos.x), Mathf.RoundToInt(blockPos.y), Mathf.RoundToInt(blockPos.z)); ;
             hitEvent.blockPos = new Vector3Int(Mathf.RoundToInt(blockPos.x), Mathf.RoundToInt(blockPos.y), Mathf.RoundToInt(blockPos.z));
+            hitEvent.globalPos = highlightCube.position;
             hitEvent.blockID = 0;
             hitEvent.entityVehicle = hit.transform.GetComponent<View>().EntityID;
         }

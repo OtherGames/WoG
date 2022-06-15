@@ -35,5 +35,11 @@ public class GlobalEvents
     public static OnSteeringVehicle onSteeringVehicle = new();
 
     //-----------------------------------------------------------------------
+
+    public class OnStopSteeringVehicle : UnityEvent { }
+
+    public static OnStopSteeringVehicle onStopSteeringVehicle = new();
+
+    //-----------------------------------------------------------------------
 }
 

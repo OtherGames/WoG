@@ -13,12 +13,16 @@ sealed class VehicleHitSystem : IEcsRunSystem
     readonly EcsFilter filterHitEvent = default;
     [EcsFilter(typeof(VehicleComponent))]
     readonly EcsFilter filterVehicle = default;
+
+    [EcsPool]
+    readonly EcsPool<EngineMined> poolEngineMined = default;
     [EcsPool]
     readonly EcsPool<VehicleComponent> poolVehicle = default;
     [EcsPool]
-    readonly EcsPool<ActuatorComponent> poolActuator = default;
+    readonly EcsPool<EngineActuatorConnectionComponent> poolConnection = default;
     [EcsPool]
     readonly EcsPool<VehicleHitEvent> poolHitEvent = default;
+
     readonly MeshGenerator meshGenerator = Service<MeshGenerator>.Get();
     readonly ActuatorMeshGenerator actuatorMesh = Service<ActuatorMeshGenerator>.Get();
 
@@ -31,14 +35,13 @@ sealed class VehicleHitSystem : IEcsRunSystem
             //Debug.Log(hitEvent.entityVehicle + " Сущность");
             ref var vehicle = ref poolVehicle.Get(hitEvent.entityVehicle);
             var pos = hitEvent.blockPos;
-            
+            var connectedID = GetConnectedID(ref vehicle, ref hitEvent);
+
             if (hitEvent.blockID > 0)
             {
-                var connectedID = GetConnectedID(ref vehicle, ref hitEvent);
-
                 if (connectedID == BLOCKS.ENGINE && hitEvent.blockID == BLOCKS.ACTUATOR)
                 {
-                    Debug.Log("Туби пязда " + vehicle.renderer);
+                    //Debug.Log("Туби пязда " + vehicle.renderer);
 
                     ActuatorAttach(ref vehicle, ref hitEvent);
 
@@ -47,8 +50,6 @@ sealed class VehicleHitSystem : IEcsRunSystem
 
                 if (connectedID == BLOCKS.ENGINE && hitEvent.blockID == BLOCKS.ACTUATOR_ROTARY)
                 {
-                    Debug.Log("Туби пязда " + vehicle.renderer);
-
                     ActuatorRotaryAttach(ref vehicle, ref hitEvent);
 
                     return;
@@ -124,6 +125,15 @@ sealed class VehicleHitSystem : IEcsRunSystem
                 var collider = vehicle.colliders[pos];
                 vehicle.colliders.Remove(pos);
                 Object.Destroy(collider);
+
+                CreateDropedBlock(connectedID, hitEvent.globalPos.x, hitEvent.globalPos.y, hitEvent.globalPos.z);
+            
+                if(connectedID == BLOCKS.ENGINE)
+                {
+                    ref var engineMined = ref poolEngineMined.Add(ecsWorld.NewEntity());
+                    engineMined.enginePos = hitEvent.connectedPos;
+                    engineMined.bodyView = vehicle.view.gameObject;
+                }
             }
         }
     }
@@ -294,6 +304,14 @@ sealed class VehicleHitSystem : IEcsRunSystem
         component.meshFilter = meshFilter;
         component.pos = actuator.transform.position;
         component.colliders = new() { { Vector3.zero, colliderView } };
+
+        //int xChunck = hitEvent.connectedPos.x - Mathf.RoundToInt(vehicle.meshOffset.x);
+        //int yChunck = hitEvent.connectedPos.y - Mathf.RoundToInt(vehicle.meshOffset.y);
+        //int zChunck = hitEvent.connectedPos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
+        ref var connecton = ref poolConnection.Add(e);
+        connecton.joint = joint;
+        //Debug.Log($"{hitEvent.connectedPos.x} ^ {hitEvent.connectedPos.y} ^ {hitEvent.connectedPos.z}");
+        connecton.engineBlockPos = hitEvent.connectedPos;
     }
 
     void ActuatorRotaryAttach(ref VehicleComponent vehicle, ref VehicleHitEvent hitEvent)
@@ -383,5 +401,36 @@ sealed class VehicleHitSystem : IEcsRunSystem
         var z = connectedPos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
 
         return vehicle.blocks[x][y][z];
+    }
+
+    void CreateDropedBlock(byte id, float x, float y, float z)
+    {
+        if (id == 2)
+        {
+            id = 3;
+        }
+
+        var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();
+        var dropedBlock = new GameObject("Droped Block - " + id);
+        dropedBlock.AddComponent<MeshRenderer>().material = Object.FindObjectOfType<WorldOfGodcraft>().mat;
+        dropedBlock.AddComponent<MeshFilter>().mesh = dropedMeshGenerator.GenerateMesh(id);
+        dropedBlock.AddComponent<DropedBlock>();
+        dropedBlock.transform.localScale /= 3f;
+
+        float offsetRandomX = Random.Range(-0.1f, 0.1f);
+        float offsetRandomY = Random.Range(-0.1f, 0.1f);
+        float offsetRandomZ = Random.Range(-0.1f, 0.1f);
+
+        dropedBlock.transform.position = new(x - offsetRandomX, y + offsetRandomY, z + offsetRandomZ);
+
+        var entity = ecsWorld.NewEntity();
+        var pool = ecsWorld.GetPool<DropedComponent>();
+        pool.Add(entity);
+        ref var component = ref pool.Get(entity);
+        component.BlockID = id;
+        component.view = dropedBlock;
+        component.itemType = ItemType.Block;
+
+        ecsWorld.GetPool<DropedCreated>().Add(entity);
     }
 }

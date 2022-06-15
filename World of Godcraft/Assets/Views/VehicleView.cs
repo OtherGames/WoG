@@ -17,6 +17,12 @@ public class VehicleView : View
     private void Start()
     {
         GlobalEvents.onSteeringVehicle.AddListener(OnSteering);
+        GlobalEvents.onStopSteeringVehicle.AddListener(Steering_Stoped);
+    }
+
+    private void Steering_Stoped()
+    {
+        isSreering = false;
     }
 
     private void OnSteering(VehicleView view)
@@ -31,6 +37,8 @@ public class VehicleView : View
     {
         if (!isSreering)
             return;
+
+        //backRotate = false;
 
         if (Input.GetKey(KeyCode.W))
         {
@@ -47,6 +55,19 @@ public class VehicleView : View
         if (Input.GetKey(KeyCode.D))
         {
             Rotate(1);
+        }
+
+        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.A))
+        {
+            foreach (var joint in rotary)
+            {
+                var motor = joint.motor;
+
+                motor.targetVelocity = 0;
+                motor.force = 0;
+                
+                joint.motor = motor;
+            }
         }
 
         if (Input.GetKeyUp(KeyCode.W) || Input.GetKeyUp(KeyCode.S))
@@ -73,12 +94,12 @@ public class VehicleView : View
                 var body = actuators.Find(a => a.connectedBody == joint.GetComponent<Rigidbody>());
                 var motor = joint.motor;
 
-                if (joint.angle > 1)
+                if (joint.angle > 3)
                 {
                     motor.targetVelocity -= 10;
                     motor.force += 5;
                 }
-                else if(joint.angle < -1)
+                else if(joint.angle < -3)
                 {
                     motor.targetVelocity += 10;
                     motor.force += 5;
@@ -132,6 +153,7 @@ public class VehicleView : View
 
     private void Gas(int dir)
     {
+        //backRotate = true;
         foreach (var joint in actuators)
         {
             var motor = joint.motor;
