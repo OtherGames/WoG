@@ -83,7 +83,7 @@ sealed class VehicleHitSystem : IEcsRunSystem
                 int y = pos.y - Mathf.RoundToInt(vehicle.meshOffset.y);
                 int z = pos.z - Mathf.RoundToInt(vehicle.meshOffset.z);
                 vehicle.blocks[x][y][z] = hitEvent.blockID;
-                var isActuator = vehicle.renderer.GetComponent<HingeJoint>();
+                var isActuator = poolConnection.Has(hitEvent.entityVehicle);
                 Mesh mesh; 
                 if (isActuator)
                 {
@@ -312,6 +312,7 @@ sealed class VehicleHitSystem : IEcsRunSystem
         connecton.joint = joint;
         //Debug.Log($"{hitEvent.connectedPos.x} ^ {hitEvent.connectedPos.y} ^ {hitEvent.connectedPos.z}");
         connecton.engineBlockPos = hitEvent.connectedPos;
+        connecton.bodyView = vehicle.view.gameObject;
     }
 
     void ActuatorRotaryAttach(ref VehicleComponent vehicle, ref VehicleHitEvent hitEvent)
