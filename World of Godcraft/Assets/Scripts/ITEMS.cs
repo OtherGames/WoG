@@ -4,6 +4,8 @@ using UnityEngine;
 
 public static class ITEMS 
 {
+    public const byte AXE_WOODEN = 120;
+    public const byte STICK = 150;
     public const byte SILICON = 160;
     public const byte MAGAZINE = 161;
     public const byte BULLET = 162;

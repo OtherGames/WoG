@@ -62,6 +62,21 @@ public class Craft
         },
         #endregion
 
+        #region Палки
+        {
+            new byte?[] { 11, null,
+                          11, null },
+            new(STICK, 4, ItemType.Item)
+        },
+
+        {
+            new byte?[] { null, 11,
+                          null, 11 },
+            new(STICK, 4, ItemType.Item)
+        },
+
+        #endregion
+
         #region Печь
         {
             new byte?[] { 3,  3,  3,
@@ -125,10 +140,30 @@ public class Craft
 
         #region Простой Пистолет
         {
-            new byte?[] { null, null, INGOT_IRON,
-                        INGOT_IRON, BULLET, INGOT_IRON,
-                        INGOT_IRON, BULLET, INGOT_IRON},
-                        new(MAGAZINE, 1, ItemType.Item)
+            new byte?[] {    null,       null,     null,
+                          INGOT_IRON, INGOT_IRON, SILICON,
+                            null,        null,    MAGAZINE}, new(SIMPLE_PISTOL, 1, ItemType.Item)
+        },
+
+        {
+            new byte?[] { INGOT_IRON, INGOT_IRON, SILICON,
+                            null,        null,    MAGAZINE,
+                            null,        null,      null},
+                                                             new(SIMPLE_PISTOL, 1, ItemType.Item)
+        },
+        #endregion
+
+        #region Деревянный топор
+        {
+            new byte?[] { STICK, 11,
+                          STICK, null },
+            new(AXE_WOODEN, 1, ItemType.Item)
+        },
+
+        {
+            new byte?[] {  11,  STICK, 
+                          null, STICK },
+            new(AXE_WOODEN, 1, ItemType.Item)
         },
         #endregion
     };
@@ -138,13 +173,13 @@ public class Craft
     {
         {  8,  39 },
         {  11, 10 },
-        { ITEMS.COAL, 10 },
+        { COAL, 10 },
     };
 
     // id блока/предмета и время обработки огнем
     public Dictionary<byte, Furnaceable> setsFurnaceable = new()
     {
-        { 30, new(5, ITEMS.INGOT_IRON) },
+        { 30, new(5, INGOT_IRON) },
     };
 
     public struct Furnaceable

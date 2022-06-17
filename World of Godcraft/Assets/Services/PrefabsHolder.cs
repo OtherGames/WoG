@@ -5,6 +5,7 @@ using UnityEngine;
 public class PrefabsHolder : MonoBehaviour
 {
     public GameObject morkva;
+    public GameObject stick;
     public GameObject coal;
     public GameObject ingotIron;
     public GameObject saltpeter;
@@ -15,6 +16,7 @@ public class PrefabsHolder : MonoBehaviour
     public GameObject magazine;
     public GameObject silicon;
     public GameObject simplePistol;
+    public GameObject axeWooden;
 
     public GameObject Get(byte id)
     {
@@ -40,6 +42,12 @@ public class PrefabsHolder : MonoBehaviour
 
             case ITEMS.SIMPLE_PISTOL:
                 return simplePistol;
+
+            case ITEMS.STICK:
+                return stick;
+
+            case ITEMS.AXE_WOODEN:
+                return axeWooden;
         }
 
         return null;

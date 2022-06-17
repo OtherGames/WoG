@@ -18,6 +18,12 @@ public class GlobalEvents
 
     //-----------------------------------------------------------------------
 
+    public class BlockPlaced : UnityEvent<byte, Vector3> { }
+
+    public static BlockPlaced onBlockPlaced = new();
+
+    //-----------------------------------------------------------------------
+
     public class InteractBlockHited : UnityEvent<byte, Vector3Int> { }
 
     public static InteractBlockHited interactBlockHited = new();

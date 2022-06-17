@@ -18,8 +18,8 @@ public class HUD : MonoBehaviour
     [SerializeField] Inventory workbenchSimle;
     [SerializeField] Inventory workbench;
     [SerializeField] Inventory furnace;
-    [SerializeField]
-    QuickInventory quickInventory;
+    [SerializeField] QuickInventory quickInventory;
+    [SerializeField] TutorialPanel tutorialPanel;
 
     [SerializeField]
     private Image blockWriteMode;
@@ -66,6 +66,8 @@ public class HUD : MonoBehaviour
         players = ecsWorld.Filter<Character>().Inc<SatietyComponent>().End();
         filterPickable = ecsWorld.Filter<PickableComponent>().End();
         poolPickable = ecsWorld.GetPool<PickableComponent>();
+
+        tutorialPanel.gameObject.SetActive(true);
 
         yield return null;
 
@@ -212,7 +214,7 @@ public class HUD : MonoBehaviour
 
     private void TESOEBIR()
     {
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.H))
         {
             byte ID = BLOCKS.FURNACE;
             var dropedMeshGenerator = Service<DropedBlockGenerator>.Get();

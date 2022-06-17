@@ -80,7 +80,6 @@ sealed class FurnaceSystem : IEcsRunSystem
                             item.view = ingot;
                             item.count = 1;
                             item.itemType = ItemType.Item;
-                            item.rotation = new(1.327f, 95.58f, -33.715f);
                             furnace.craftResult = item;
                         }
                     }

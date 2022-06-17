@@ -143,6 +143,8 @@ public class CraftInventory : MonoBehaviour
             component.count = result.Item2;
             component.itemType = result.Item3;
 
+            ecsWorld.GetPool<ItemCraftResultInventory>().Add(entity);
+
             cellResult.Init(entity, ref component);
 
             craftedItem = new() { entity = entity, view = view };

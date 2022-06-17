@@ -16,8 +16,10 @@ public class Inventory : MonoBehaviour
 
     public bool IsShowed { get; set; }
     public float ScreenScale { get; set; }
+    public DragItem DragItem => dragItem;
 
     readonly List<CellInventory> cells = new();
+    EcsPool<ItemCraftResultInventory> poolCraftResult;
     EcsPool<InventoryItem> poolItems;
     DragItem dragItem;
     EcsFilter filterItems;
@@ -33,6 +35,7 @@ public class Inventory : MonoBehaviour
         filter = ecsWorld.Filter<InventoryItem>().Exc<ItemQuickInventory>().Exc<ItemCraftInventory>().Exc<StandaloneInventory>().End();
         filterItems = ecsWorld.Filter<InventoryItem>().End();
         poolItems = ecsWorld.GetPool<InventoryItem>();
+        poolCraftResult = ecsWorld.GetPool<ItemCraftResultInventory>();
 
         for (int i = 0; i < size; i++)
         {
@@ -155,10 +158,17 @@ public class Inventory : MonoBehaviour
 
                 if (cellInventory)
                 {
+                    if (poolCraftResult.Has(dragItem.entity))
+                    {
+                        poolCraftResult.Del(dragItem.entity);
+                    }
+
                     SetItem(cellInventory);
                     dragItem = null;
                     result = true;
                 }
+
+                
             }
         }
 

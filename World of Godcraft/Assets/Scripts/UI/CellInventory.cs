@@ -10,7 +10,6 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler
     [SerializeField] Transform objectHolder;
     [SerializeField] public TMP_Text labelCount;
 
-    //public bool IsPointerEntered { get; set; }
     public int? EntityItem { get; set; }
 
     public Action<CellInventory> OnItemSeted;
@@ -24,7 +23,7 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler
 
         item.view.transform.SetParent(objectHolder, false);
         item.view.transform.localPosition = Vector3.zero;
-        item.view.transform.localRotation = Quaternion.Euler(item.rotation);
+        item.view.transform.localRotation = Quaternion.Euler(Rotation(item.blockID));
 
         item.view.SetActive(true);
         item.view.layer = 5;
@@ -40,7 +39,7 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler
     public virtual void SetItem(DragItem dragItem)
     {
         EntityItem = dragItem.entity;
-        print(gameObject.name);
+
         dragItem.view.transform.SetParent(objectHolder, false);
         dragItem.view.transform.localPosition = Vector3.zero;
 
@@ -67,4 +66,18 @@ public class CellInventory : MonoBehaviour, IPointerDownHandler
         }
     }
 
+    Vector3 Rotation(byte id)
+    {
+        switch (id)
+        {
+            case ITEMS.INGOT_IRON:
+                return new(1.327f, 95.58f, -33.715f);
+            case ITEMS.STICK:
+                return new(-51f, 39f, 3.189f);
+            case ITEMS.AXE_WOODEN:
+                return new(-43f, 63.709f, 6.843f);
+        }
+
+        return Vector3.zero;
+    }
 }

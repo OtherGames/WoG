@@ -290,6 +290,7 @@ public class PlayerCharacter : MonoBehaviour
                                 component.blockId = item.blockID;
 
                                 onChunkHit?.Invoke(new Entity { id = e }, component);
+                                GlobalEvents.onBlockPlaced?.Invoke(item.blockID, blockPosition + hit.normal);
 
                                 // HOT FIX вынести в отдельную систему
                                 item.count--;
